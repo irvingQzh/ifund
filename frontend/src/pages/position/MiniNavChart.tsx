@@ -36,7 +36,10 @@ export default function MiniNavChart({ data, height = 48 }: { data: NavCurvePoin
           labelStyle={{ color: token.colorTextSecondary }}
           itemStyle={{ color: token.colorText }}
           labelFormatter={(d) => `${d}`}
-          formatter={(v: number) => [`${v >= 0 ? '+' : ''}${v.toFixed(2)}%`, '累计收益']}
+          formatter={(v) => {
+            const value = Number(v)
+            return [Number.isFinite(value) ? `${value >= 0 ? '+' : ''}${value.toFixed(2)}%` : '—', '累计收益']
+          }}
         />
         <Area
           type="monotone"

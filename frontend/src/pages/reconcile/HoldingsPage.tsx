@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
-  Alert, Button, Card, Divider, Input, Modal, Popconfirm, Segmented, Select, Space, Tabs, Tag, Typography, message,
+  Alert, Button, Card, Input, Modal, Popconfirm, Segmented, Select, Space, Tabs, Tag, Typography, message,
 } from 'antd'
 import { DeleteOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons'
 import request from '../../api/request'
@@ -124,64 +124,68 @@ export default function HoldingsPage() {
         message="实盘：选一个实盘（自己的或代管他人的资金）→ 关联一套②仓位建议（预设）→ 录入真实持仓 → 一键生成操作指南。持仓持久化、跨会话保留；盈亏仅展示不参与决策。各实盘各自记住关联的预设。"
       />
 
-      <Card size="small" title="选择实盘">
-        <Space wrap size="middle">
-          <Select
-            style={{ minWidth: 220 }}
-            placeholder="选择实盘"
-            value={pid ?? undefined}
-            onChange={setPid}
-            options={portfolios.map((p) => ({ label: p.name, value: p.id }))}
-          />
-          <Button icon={<PlusOutlined />} onClick={openCreate}>
-            新建
-          </Button>
-          <Button icon={<EditOutlined />} onClick={openRename} disabled={!current}>
-            重命名
-          </Button>
-          <Popconfirm
-            title="删除该实盘？"
-            description="该实盘下的持仓将一并删除，不可恢复。"
-            onConfirm={removePortfolio}
-            disabled={!current || portfolios.length <= 1}
-          >
-            <Button icon={<DeleteOutlined />} danger disabled={!current || portfolios.length <= 1}>
-              删除
-            </Button>
-          </Popconfirm>
+      <Card size="small" title="选择实盘" className="qfund-portfolio-card">
+        <div className="qfund-portfolio-controls">
+          <div className="qfund-portfolio-primary">
+            <Select
+              className="qfund-portfolio-select"
+              placeholder="选择实盘"
+              value={pid ?? undefined}
+              onChange={setPid}
+              options={portfolios.map((p) => ({ label: p.name, value: p.id }))}
+            />
+            <Space wrap size={8} className="qfund-portfolio-actions">
+              <Button icon={<PlusOutlined />} onClick={openCreate}>
+                新建
+              </Button>
+              <Button icon={<EditOutlined />} onClick={openRename} disabled={!current}>
+                重命名
+              </Button>
+              <Popconfirm
+                title="删除该实盘？"
+                description="该实盘下的持仓将一并删除，不可恢复。"
+                onConfirm={removePortfolio}
+                disabled={!current || portfolios.length <= 1}
+              >
+                <Button icon={<DeleteOutlined />} danger disabled={!current || portfolios.length <= 1}>
+                  删除
+                </Button>
+              </Popconfirm>
+            </Space>
+          </div>
 
-          <Divider type="vertical" />
+          <div className="qfund-portfolio-field">
+            <span>关联仓位建议：</span>
+            <Select
+              className="qfund-portfolio-preset-select"
+              placeholder="请选择预设（仓位建议来源）"
+              allowClear
+              value={current?.preset_id ?? undefined}
+              onChange={(v) => linkPreset(v ?? null)}
+              options={presets.map((p) => ({ label: p.name, value: p.id }))}
+              disabled={!current}
+            />
+            {current && (current.preset_id ? (
+              <Tag color="green">已关联</Tag>
+            ) : (
+              <Tag color="gold">未关联</Tag>
+            ))}
+          </div>
 
-          <span>关联仓位建议：</span>
-          <Select
-            style={{ minWidth: 260 }}
-            placeholder="请选择预设（仓位建议来源）"
-            allowClear
-            value={current?.preset_id ?? undefined}
-            onChange={(v) => linkPreset(v ?? null)}
-            options={presets.map((p) => ({ label: p.name, value: p.id }))}
-            disabled={!current}
-          />
-          {current && (current.preset_id ? (
-            <Tag color="green">已关联</Tag>
-          ) : (
-            <Tag color="gold">未关联</Tag>
-          ))}
-
-          <Divider type="vertical" />
-
-          <span>均衡强度：</span>
-          <Segmented
-            value={current?.cap ?? 0.18}
-            onChange={(v) => linkCap(v as number)}
-            options={[
-              { label: '松', value: 0.22 },
-              { label: '中', value: 0.18 },
-              { label: '紧', value: 0.14 },
-            ]}
-            disabled={!current}
-          />
-        </Space>
+          <div className="qfund-portfolio-field">
+            <span>均衡强度：</span>
+            <Segmented
+              value={current?.cap ?? 0.18}
+              onChange={(v) => linkCap(v as number)}
+              options={[
+                { label: '松', value: 0.22 },
+                { label: '中', value: 0.18 },
+                { label: '紧', value: 0.14 },
+              ]}
+              disabled={!current}
+            />
+          </div>
+        </div>
         <div style={{ marginTop: 8 }}>
           <Typography.Text type="secondary" style={{ fontSize: 12 }}>
             目标比例来自所关联预设的镜像 → 行业暴露聚类 → 簇级仓位建议。换实盘即切换其各自的持仓与关联预设。
@@ -190,11 +194,12 @@ export default function HoldingsPage() {
       </Card>
 
       <Tabs
+        className="qfund-holdings-tabs"
         defaultActiveKey="holdings"
         items={[
           {
             key: 'holdings',
-            label: '实际持仓管理',
+            label: <><span className="qfund-tab-long">实际持仓管理</span><span className="qfund-tab-short">持仓</span></>,
             children: <HoldingsManager portfolioId={pid} reloadSignal={reloadSignal} />,
           },
           {

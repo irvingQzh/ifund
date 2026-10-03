@@ -15,3 +15,168 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC',
     'Microsoft YaHei', sans-serif;
 }
+
+.qfund-shell {
+  height: 100vh;
+  height: 100dvh;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.qfund-header {
+  flex-shrink: 0;
+  padding-inline: 16px;
+}
+
+.qfund-header-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.qfund-brand-name {
+  color: #fff;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.qfund-mobile-menu-button {
+  display: none;
+}
+
+.qfund-logout-button.ant-btn-background-ghost {
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.65);
+}
+
+.qfund-logout-button.ant-btn-background-ghost:hover,
+.qfund-logout-button.ant-btn-background-ghost:focus-visible {
+  color: #fff !important;
+  border-color: #fff !important;
+}
+
+.qfund-main-layout,
+.qfund-content {
+  min-width: 0;
+  min-height: 0;
+}
+
+.qfund-content {
+  padding: 16px;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.qfund-skip-link {
+  position: absolute;
+  z-index: 1100;
+  top: -100px;
+  left: 12px;
+  padding: 8px 12px;
+  background: #1677ff;
+  color: #fff;
+  border-radius: 6px;
+}
+
+.qfund-skip-link:focus {
+  top: 8px;
+}
+
+.qfund-portfolio-controls,
+.qfund-portfolio-primary,
+.qfund-portfolio-field {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+}
+
+.qfund-portfolio-controls {
+  gap: 16px;
+}
+
+.qfund-portfolio-select {
+  width: 220px;
+}
+
+.qfund-portfolio-preset-select {
+  width: 260px;
+}
+
+.qfund-tab-short {
+  display: none;
+}
+
+@media (max-width: 1023px) {
+  .qfund-header {
+    height: 56px;
+    line-height: 56px;
+    padding-inline: 12px;
+  }
+
+  .qfund-mobile-menu-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    color: #fff;
+    font-size: 18px;
+  }
+
+  .qfund-mobile-menu-button:hover,
+  .qfund-mobile-menu-button:focus-visible {
+    color: #fff !important;
+  }
+
+  .qfund-logout-button {
+    min-height: 44px;
+  }
+
+  .qfund-desktop-sider {
+    display: none !important;
+  }
+
+  .qfund-content {
+    padding: 12px 12px max(24px, env(safe-area-inset-bottom));
+  }
+
+  .qfund-portfolio-controls,
+  .qfund-portfolio-primary,
+  .qfund-portfolio-field {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+  }
+
+  .qfund-portfolio-select,
+  .qfund-portfolio-preset-select {
+    width: 100%;
+    height: 44px;
+  }
+
+  .qfund-portfolio-card .ant-select-selector,
+  .qfund-portfolio-card .ant-segmented-item-label {
+    min-height: 44px;
+  }
+
+  .qfund-portfolio-card .ant-segmented-item-label {
+    line-height: 44px;
+  }
+
+  .qfund-portfolio-actions .ant-btn {
+    min-height: 44px;
+  }
+
+  .qfund-holdings-tabs .ant-tabs-tab {
+    padding: 12px 0;
+  }
+
+  .qfund-tab-long {
+    display: none;
+  }
+
+  .qfund-tab-short {
+    display: inline;
+  }
+}

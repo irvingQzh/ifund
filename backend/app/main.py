@@ -1,14 +1,15 @@
 """Flask 应用工厂：注册蓝图、JWT、SQLite 建表、SPA fallback。"""
 from __future__ import annotations
 
-import datetime
-import logging
 import os
+import sqlite3
 from pathlib import Path
 
 from dotenv import load_dotenv
 from flask import Flask, jsonify, request, send_from_directory
 from flask_jwt_extended import JWTManager
+
+from app.security import install_api_guards, security_config
 
 
 def create_app() -> Flask:
@@ -18,27 +19,13 @@ def create_app() -> Flask:
     backend_dir = Path(__file__).resolve().parents[1]
     static_dir = backend_dir / "static"
 
-    app = Flask(__name__, static_folder=str(static_dir), static_url_path="")
-    secret_key = os.getenv("SECRET_KEY", "dev-secret")
-    if len(secret_key) < 32:
-        logging.warning(
-            "SECRET_KEY 过弱（<32 字节）。对外暴露 API / 启用 PAT 前请在 .env 设置"
-            "强随机密钥（如 python -c \"import secrets;print(secrets.token_hex(32))\"），"
-            "否则 JWT 可被伪造。"
-        )
-    app.config["JWT_SECRET_KEY"] = secret_key
-    app.config["JWT_TOKEN_LOCATION"] = ["headers"]
-    app.config["JWT_HEADER_TYPE"] = "Bearer"
-    # access token 有效期：默认 30 天（本地个人工具，免于频繁重登）。
-    # 可用环境变量 JWT_EXPIRES_DAYS 调整；设为 0 则永不过期。
-    try:
-        expires_days = float(os.getenv("JWT_EXPIRES_DAYS", "30"))
-    except ValueError:
-        expires_days = 30
-    app.config["JWT_ACCESS_TOKEN_EXPIRES"] = (
-        False if expires_days <= 0 else datetime.timedelta(days=expires_days)
-    )
-    JWTManager(app)
+    application = Flask(__name__, static_folder=str(static_dir), static_url_path="")
+    # Fail before touching the DB if a production security setting is unsafe.
+    application.config.update(security_config())
+    if application.config["QFUND_PRODUCTION"]:
+        application.config["DEBUG"] = False
+    JWTManager(application)
+    install_api_guards(application)
 
     # SQLite 后端：启动时自动建表（幂等）
     from app import db as database
@@ -48,8 +35,9 @@ def create_app() -> Flask:
         # 增量迁移：portfolios 表加 cap 列（已存在则跳过）
         try:
             database.init_db("ALTER TABLE portfolios ADD COLUMN cap REAL DEFAULT 0.18;")
-        except Exception:
-            pass
+        except sqlite3.OperationalError as exc:
+            if "duplicate column name" not in str(exc).lower():
+                raise
 
     # 注册蓝图
     from app.routers.auth import bp as auth_bp
@@ -66,13 +54,13 @@ def create_app() -> Flask:
     for blueprint in (auth_bp, fund_bp, fund_detail_bp, holdings_bp, nav_bp,
                       calendar_bp, industry_bp, cluster_bp, position_bp, reconcile_bp,
                       ai_analyze_bp):
-        app.register_blueprint(blueprint)
+        application.register_blueprint(blueprint)
 
-    @app.get("/api/health")
+    @application.get("/api/health")
     def health():
         return jsonify({"status": "ok"})
 
-    @app.errorhandler(404)
+    @application.errorhandler(404)
     def spa_fallback(_err):
         if request.path.startswith("/api"):
             return jsonify({"detail": "not found"}), 404
@@ -81,7 +69,7 @@ def create_app() -> Flask:
             return send_from_directory(str(static_dir), "index.html")
         return jsonify({"detail": "frontend not built"}), 404
 
-    return app
+    return application
 
 
 app = create_app()

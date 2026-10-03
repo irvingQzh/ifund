@@ -6,13 +6,13 @@ export default function CapitalBar({ stocks }: { stocks: CapitalStock[] }) {
   if (!stocks.length) return null
   const max = Math.max(...stocks.map((s) => s.mv_pct), 1)
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+    <div className="qfund-capital-bars">
       {stocks.map((s) => (
-        <div key={s.code} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ width: 150, fontSize: 12, textAlign: 'right' }} title={s.name}>
+        <div className="qfund-capital-row" key={s.code}>
+          <span className="qfund-capital-name" title={s.name}>
             {s.name}
           </span>
-          <div style={{ flex: 1, background: 'rgba(140,140,140,0.18)', borderRadius: 3, height: 14 }}>
+          <div className="qfund-capital-track">
             <Tooltip title={`${s.industry} · 簇内 ${s.overlap} 只基金持有`}>
               <div
                 style={{
@@ -24,7 +24,7 @@ export default function CapitalBar({ stocks }: { stocks: CapitalStock[] }) {
               />
             </Tooltip>
           </div>
-          <span style={{ width: 130, fontSize: 12 }}>
+          <span className="qfund-capital-value">
             {s.mv_yi.toFixed(2)} 亿 · {s.mv_pct.toFixed(1)}%
           </span>
         </div>

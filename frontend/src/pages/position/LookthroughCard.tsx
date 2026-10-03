@@ -130,6 +130,7 @@ export default function LookthroughCard({ data, selStocks, selInds, onSelStocks,
 
   return (
     <Card
+      className="qfund-position-lookthrough-card"
       size="small"
       title="底层持仓穿透"
       extra={
@@ -144,16 +145,16 @@ export default function LookthroughCard({ data, selStocks, selInds, onSelStocks,
         />
       }
     >
-      <Row gutter={16} style={{ marginBottom: 8 }}>
-        <Col span={6}>
+      <Row gutter={[12, 16]} style={{ marginBottom: 8 }}>
+        <Col xs={12} sm={6}>
           <Statistic title="覆盖代表基金" value={data.funds_covered} suffix="只" valueStyle={{ fontSize: 20 }} />
         </Col>
         {mode === 'stock' ? (
           <>
-            <Col span={6}>
+            <Col xs={12} sm={6}>
               <Statistic title="累计不同股票" value={data.total_stocks} suffix="只" valueStyle={{ fontSize: 20 }} />
             </Col>
-            <Col span={6}>
+            <Col xs={12} sm={6}>
               <Statistic
                 title="重叠股票"
                 value={data.overlap_stocks}
@@ -164,10 +165,10 @@ export default function LookthroughCard({ data, selStocks, selInds, onSelStocks,
           </>
         ) : (
           <>
-            <Col span={6}>
+            <Col xs={12} sm={6}>
               <Statistic title="覆盖行业" value={data.industries.length} suffix="个" valueStyle={{ fontSize: 20 }} />
             </Col>
-            <Col span={6}>
+            <Col xs={12} sm={6}>
               <Statistic
                 title="最大单一行业"
                 value={data.industries[0]?.exposure ?? 0}
@@ -178,7 +179,7 @@ export default function LookthroughCard({ data, selStocks, selInds, onSelStocks,
             </Col>
           </>
         )}
-        <Col span={6}>
+        <Col xs={12} sm={6}>
           <Statistic title="前十大穿透总仓位" value={data.visible_position} precision={2} suffix="%" valueStyle={{ fontSize: 20 }} />
         </Col>
       </Row>
@@ -194,6 +195,7 @@ export default function LookthroughCard({ data, selStocks, selInds, onSelStocks,
           rowKey="code"
           columns={stockColumns}
           dataSource={data.stocks}
+          scroll={{ x: 670 }}
           rowSelection={{
             selectedRowKeys: selStocks,
             onChange: (keys) => onSelStocks(keys as string[]),
@@ -213,6 +215,7 @@ export default function LookthroughCard({ data, selStocks, selInds, onSelStocks,
           rowKey="industry"
           columns={industryColumns}
           dataSource={data.industries}
+          scroll={{ x: 820 }}
           rowSelection={{
             selectedRowKeys: selInds,
             onChange: (keys) => onSelInds(keys as string[]),

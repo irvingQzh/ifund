@@ -6,6 +6,7 @@ import SummaryCard from './SummaryCard'
 import ReconcileTable from './ReconcileTable'
 import TransfersTable from './TransfersTable'
 import type { ReconResult } from './types'
+import './reconcile-advice-mobile.css'
 
 // 操作指南：把所选实盘关联的②仓位建议目标比例落到实盘持仓上，按赛道对齐推导操作。
 // 两个正交开关覆盖四类意图；现金由系统反推（"加满还差多少"），无需预填。
@@ -57,51 +58,54 @@ export default function ReconcileView({
   const meta = result?.meta
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      <Card size="small" title="调仓方式">
-        <Space wrap size="large">
+    <div className="reconcile-mobile" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <Card className="reconcile-mode-card" size="small" title="调仓方式">
+        <Space className="reconcile-mode-options" wrap size="large">
           <Tooltip title="保留不动：赛道外基金不卖（最小干预）。可卖补仓：把赛道外基金卖出，优先用于补低配赛道。">
-            <span>
-              赛道外基金：
-              <Segmented
-                style={{ marginLeft: 8 }}
-                value={sellOutside ? 'sell' : 'keep'}
-                onChange={(v) => setSellOutside(v === 'sell')}
-                options={[
-                  { label: '保留不动', value: 'keep' },
-                  { label: '可卖补仓', value: 'sell' },
-                ]}
-              />
+            <span className="reconcile-mode-option">
+              <span>赛道外基金：</span>
+              <span className="reconcile-mode-choice">
+                <Segmented
+                  value={sellOutside ? 'sell' : 'keep'}
+                  onChange={(v) => setSellOutside(v === 'sell')}
+                  options={[
+                    { label: '保留不动', value: 'keep' },
+                    { label: '可卖补仓', value: 'sell' },
+                  ]}
+                />
+              </span>
             </span>
           </Tooltip>
           <Tooltip title="可减（削峰填谷）：卖出超配赛道补低配赛道，盘子=赛道内现额，理论零追加。不减（只往上加）：超配赛道不碰，只买入，盘子放大到最超配赛道达标——严重超配时追加现金需求会很高。">
-            <span>
-              赛道内超配：
-              <Segmented
-                style={{ marginLeft: 8 }}
-                value={trimOverflow ? 'cut' : 'nocut'}
-                onChange={(v) => setTrimOverflow(v === 'cut')}
-                options={[
-                  { label: '可减（削峰填谷）', value: 'cut' },
-                  { label: '不减（只往上加）', value: 'nocut' },
-                ]}
-              />
+            <span className="reconcile-mode-option">
+              <span>赛道内超配：</span>
+              <span className="reconcile-mode-choice">
+                <Segmented
+                  value={trimOverflow ? 'cut' : 'nocut'}
+                  onChange={(v) => setTrimOverflow(v === 'cut')}
+                  options={[
+                    { label: '可减（削峰填谷）', value: 'cut' },
+                    { label: '不减（只往上加）', value: 'nocut' },
+                  ]}
+                />
+              </span>
             </span>
           </Tooltip>
           <Tooltip title="缓冲带：目标与实际的偏离在「盘子 × 此比例」以内就保持不动，抑制短期噪音、保持调仓连贯。宽松=更少折腾，灵敏=更贴目标。">
-            <span>
-              缓冲带：
-              <Segmented
-                style={{ marginLeft: 8 }}
-                value={band}
-                onChange={(v) => setBand(v as number)}
-                options={[
-                  { label: '宽松 5%', value: 0.05 },
-                  { label: '标准 3%', value: 0.03 },
-                  { label: '灵敏 1.5%', value: 0.015 },
-                  { label: '全替换 0%', value: 0 },
-                ]}
-              />
+            <span className="reconcile-mode-option">
+              <span>缓冲带：</span>
+              <span className="reconcile-mode-choice">
+                <Segmented
+                  value={band}
+                  onChange={(v) => setBand(v as number)}
+                  options={[
+                    { label: '宽松 5%', value: 0.05 },
+                    { label: '标准 3%', value: 0.03 },
+                    { label: '灵敏 1.5%', value: 0.015 },
+                    { label: '全替换 0%', value: 0 },
+                  ]}
+                />
+              </span>
             </span>
           </Tooltip>
           <Button type="primary" icon={<ReconciliationOutlined />} loading={loading} onClick={run}>

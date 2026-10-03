@@ -34,7 +34,7 @@ const MATCH_COLOR = (m: Exclude<ReconMatch, null>) =>
 function ClusterFunds({ row }: { row: ReconRow }) {
   const funds = row.user_funds
   return (
-    <div style={{ padding: '4px 0 4px 24px' }}>
+    <div className="reconcile-expanded-funds" style={{ padding: '4px 0 4px 24px' }}>
       <Typography.Text type="secondary" style={{ fontSize: 12 }}>
         本赛道归类到 {funds.length} 只持仓，合计 {yuan(row.actual)} 元（即左侧「当前市值」）：
       </Typography.Text>
@@ -44,6 +44,7 @@ function ClusterFunds({ row }: { row: ReconRow }) {
         rowKey={(f) => f.code}
         dataSource={funds}
         pagination={false}
+        scroll={{ x: 650 }}
         columns={[
           {
             title: '基金',
@@ -123,6 +124,7 @@ export default function ReconcileTable({ rows }: { rows: ReconRow[] }) {
 
   return (
     <Card
+      className="reconcile-card reconcile-results-card"
       title="对账建议"
       size="small"
       extra={
@@ -131,11 +133,13 @@ export default function ReconcileTable({ rows }: { rows: ReconRow[] }) {
         </Button>
       }
     >
+      <div className="reconcile-scroll-hint">左右滑动表格，查看动作、建议金额和操作基金</div>
       <Table<ReconRow>
         size="small"
         rowKey={(r) => `${r.cluster_id ?? 'out'}-${r.target_fund.code}`}
         dataSource={rows}
         pagination={false}
+        scroll={{ x: 1500 }}
         expandable={{
           rowExpandable: (r) => r.user_funds.length > 0,
           expandedRowRender: (r) => <ClusterFunds row={r} />,

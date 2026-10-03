@@ -13,9 +13,10 @@ export default function SummaryCard({ summary }: { summary: ReconSummary }) {
 
   return (
     <Card
+      className="reconcile-card reconcile-summary-card"
       size="small"
       title={
-        <span>
+        <span className="reconcile-summary-title">
           操作指南{' '}
           <Tag color={sell_outside ? 'purple' : 'blue'}>
             赛道外{sell_outside ? '可卖' : '保留'}
@@ -27,17 +28,17 @@ export default function SummaryCard({ summary }: { summary: ReconSummary }) {
       }
     >
       <Row gutter={[16, 16]}>
-        <Col xs={12} sm={8} md={6}>
+        <Col xs={24} sm={8} md={6}>
           <Tooltip title="按目标比例分配的总盘子。超配可减时=赛道内现额(+赛道外可卖)；超配不减时=放大到最超配赛道达标。">
             <Statistic title="目标盘子" value={yuan(summary.base_asset)} suffix="元" />
           </Tooltip>
         </Col>
-        <Col xs={12} sm={8} md={6}>
+        <Col xs={24} sm={8} md={6}>
           <Tooltip title="对上赛道、参与本次调仓的持仓市值">
             <Statistic title="赛道内市值" value={yuan(summary.matched_total)} suffix="元" />
           </Tooltip>
         </Col>
-        <Col xs={12} sm={8} md={6}>
+        <Col xs={24} sm={8} md={6}>
           <Tooltip title="不属于本组合任一赛道的持仓市值">
             <Statistic
               title={sell_outside ? '赛道外（按需卖出）' : '赛道外（保留不动）'}
@@ -47,7 +48,7 @@ export default function SummaryCard({ summary }: { summary: ReconSummary }) {
             />
           </Tooltip>
         </Col>
-        <Col xs={12} sm={8} md={6}>
+        <Col xs={24} sm={8} md={6}>
           <Tooltip title="系统反推「把各赛道加满到目标比例还差多少现金」。0 表示靠卖出腾挪即可、无需追加投入。">
             <Statistic
               title="还需追加现金"
@@ -63,7 +64,7 @@ export default function SummaryCard({ summary }: { summary: ReconSummary }) {
             <Statistic
               title="买入资金来源"
               valueRender={() => (
-                <span style={{ fontSize: 16 }}>
+                <span className="reconcile-summary-formula" style={{ fontSize: 16 }}>
                   超配减仓 <b style={{ color: '#d48806' }}>{yuan(summary.from_trim)}</b>
                   {' + '}赛道外卖出 <b style={{ color: '#722ed1' }}>{yuan(summary.from_outside)}</b>
                   {' + '}追加现金 <b style={{ color: '#fa541c' }}>{yuan(summary.cash_needed)}</b>
@@ -83,7 +84,7 @@ export default function SummaryCard({ summary }: { summary: ReconSummary }) {
               <Statistic
                 title="标的替换（等额换仓，不改仓位）"
                 valueRender={() => (
-                  <span style={{ fontSize: 16 }}>
+                  <span className="reconcile-summary-formula" style={{ fontSize: 16 }}>
                     共 <b style={{ color: '#13c2c2' }}>{yuan(summary.replace_total)}</b> 元 ·
                     簇内非目标基金 → 目标基金
                   </span>
@@ -95,7 +96,7 @@ export default function SummaryCard({ summary }: { summary: ReconSummary }) {
 
         {summary.has_cost && (
           <>
-            <Col xs={12} sm={8} md={6}>
+            <Col xs={24} sm={8} md={6}>
               <Tooltip
                 title={`基于有成本的持仓（${yuan(summary.cost_covered_mv)} 元）；仅展示，不参与调仓决策`}
               >
@@ -107,7 +108,7 @@ export default function SummaryCard({ summary }: { summary: ReconSummary }) {
                 />
               </Tooltip>
             </Col>
-            <Col xs={12} sm={8} md={6}>
+            <Col xs={24} sm={8} md={6}>
               <Statistic
                 title="收益率"
                 value={summary.return_pct == null ? '—' : summary.return_pct}
@@ -118,7 +119,7 @@ export default function SummaryCard({ summary }: { summary: ReconSummary }) {
             </Col>
           </>
         )}
-        <Col xs={12} sm={8} md={6}>
+        <Col xs={24} sm={8} md={6}>
           <Statistic title="缓冲带" value={(summary.band * 100).toFixed(1)} suffix="%" />
         </Col>
       </Row>

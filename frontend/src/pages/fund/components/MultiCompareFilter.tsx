@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Button, InputNumber, Select, Space } from 'antd'
+import { Button, InputNumber, Select } from 'antd'
 import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons'
 import { COMPARE_FIELDS as FIELDS, COMPARE_OP_OPTIONS as OP_OPTIONS } from '../constants'
 import type { CompareCondition, CompareOp } from '../types'
@@ -75,29 +75,32 @@ export default function MultiCompareFilter({ value, onChange }: Props) {
   }
 
   return (
-    <div className="grid grid-cols-1 gap-x-6 gap-y-2 md:grid-cols-2">
+    <div className="fund-compare-grid">
       {FIELDS.map((f) => (
-        <div key={f.key} className="flex items-start gap-2">
-          <div className="w-20 shrink-0 pt-1 text-xs text-gray-400">{f.label}</div>
-          <div className="flex flex-1 flex-col gap-1">
+        <div key={f.key} className="fund-compare-field">
+          <div className="fund-compare-label">{f.label}</div>
+          <div className="fund-compare-rows">
             {(rows[f.key] ?? []).map((r, idx) => (
-              <Space key={idx} size={4}>
+              <div className="fund-compare-row-controls" key={idx}>
                 <Select<CompareOp>
+                  aria-label={`${f.label}第 ${idx + 1} 个条件的比较方式`}
+                  className="fund-compare-op"
                   size="small"
                   value={r.op}
                   options={OP_OPTIONS}
                   onChange={(op) => setRow(f.key, idx, { op })}
-                  style={{ width: 64 }}
                 />
                 <InputNumber
+                  aria-label={`${f.label}第 ${idx + 1} 个条件的数值`}
+                  className="fund-compare-value"
                   size="small"
                   placeholder="值"
                   value={r.value}
                   onChange={(v) => setRow(f.key, idx, { value: v as number | null })}
-                  style={{ width: 110 }}
                 />
                 {idx === 0 ? (
                   <Button
+                    aria-label={`为${f.label}增加条件`}
                     size="small"
                     type="text"
                     icon={<PlusOutlined />}
@@ -105,6 +108,7 @@ export default function MultiCompareFilter({ value, onChange }: Props) {
                   />
                 ) : (
                   <Button
+                    aria-label={`删除${f.label}第 ${idx + 1} 个条件`}
                     size="small"
                     type="text"
                     danger
@@ -112,7 +116,7 @@ export default function MultiCompareFilter({ value, onChange }: Props) {
                     onClick={() => removeRow(f.key, idx)}
                   />
                 )}
-              </Space>
+              </div>
             ))}
           </div>
         </div>

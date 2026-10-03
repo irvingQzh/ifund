@@ -100,7 +100,7 @@ function renderAiPanel(ai: FundAi | null | undefined) {
         <Typography.Text strong>{fmt(ai.verdict)}</Typography.Text>
       </Space>
 
-      <Descriptions size="small" column={2} bordered title="核心维度">
+      <Descriptions size="small" column={{ xs: 1, sm: 2 }} bordered title="核心维度">
         <Descriptions.Item label="实力分">
           {ai.skill_score != null ? `${ai.skill_score} / 100` : '-'}
         </Descriptions.Item>
@@ -111,7 +111,7 @@ function renderAiPanel(ai: FundAi | null | undefined) {
         <Descriptions.Item label="硬实力逻辑" span={2}>{fmt(ai.hard_thesis)}</Descriptions.Item>
       </Descriptions>
 
-      <Descriptions size="small" column={2} bordered title="经理 / 风险锚点">
+      <Descriptions size="small" column={{ xs: 1, sm: 2 }} bordered title="经理 / 风险锚点">
         <Descriptions.Item label="基金经理">{fmt(ai.manager)}</Descriptions.Item>
         <Descriptions.Item label="任职年限">
           {ai.tenure_years != null ? `${ai.tenure_years} 年` : '-'}
@@ -178,8 +178,8 @@ function NavChart({ code }: { code: string }) {
 
   return (
     <div style={{ marginBottom: 16 }}>
-      <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 12, marginBottom: 4 }}>
-        <div style={{ display: 'flex', gap: 20 }}>
+      <div className="fund-chart-header">
+        <div className="fund-chart-stats">
           <Statistic
             title={shown ? `净值 · ${shown.date}` : '净值'}
             value={shown ? shown.nav : 0}
@@ -195,7 +195,7 @@ function NavChart({ code }: { code: string }) {
             valueStyle={{ fontSize: 18, color: shownPct >= 0 ? UP : DOWN }}
           />
         </div>
-        <Segmented size="small" options={NAV_RANGES} value={range} onChange={(v) => setRange(v as number)} />
+        <Segmented className="fund-chart-ranges" size="small" options={NAV_RANGES} value={range} onChange={(v) => setRange(v as number)} />
       </div>
       <ResponsiveContainer width="100%" height={200}>
         <AreaChart
@@ -295,7 +295,7 @@ export default function FundDetailModal({ code, open, onClose }: Props) {
     .map((v) => ({ text: v, value: v }))
 
   return (
-    <Modal open={open} onCancel={onClose} footer={null} width={760} title={`基金详情 · ${code ?? ''}`}>
+    <Modal open={open} onCancel={onClose} footer={null} width={760} className="fund-detail-modal" title={`基金详情 · ${code ?? ''}`}>
       <Spin spinning={loading}>
         <Tabs
           items={[
@@ -305,7 +305,7 @@ export default function FundDetailModal({ code, open, onClose }: Props) {
               children: (
                 <>
                   {code && <NavChart code={code} />}
-                  <Descriptions size="small" column={2} bordered>
+                  <Descriptions size="small" column={{ xs: 1, sm: 2 }} bordered>
                     {BASIC_FIELDS.map(([k, label]) => (
                       <Descriptions.Item key={k} label={label}>
                         {fmt(data?.[k])}
@@ -319,7 +319,7 @@ export default function FundDetailModal({ code, open, onClose }: Props) {
               key: 'perf',
               label: '业绩与风险',
               children: (
-                <Descriptions size="small" column={2} bordered>
+                <Descriptions size="small" column={{ xs: 1, sm: 2 }} bordered>
                   {PERF_FIELDS.map(([k, label]) => (
                     <Descriptions.Item key={k} label={label}>
                       {fmt(data?.[k])}
@@ -360,6 +360,7 @@ export default function FundDetailModal({ code, open, onClose }: Props) {
                   ) : (
                     <Table<HoldingItem>
                       size="small"
+                      scroll={{ x: 680 }}
                       rowKey={(r) => `${r.holding_type}-${r.asset_code}-${r.quarter}`}
                       dataSource={holdings}
                       pagination={false}

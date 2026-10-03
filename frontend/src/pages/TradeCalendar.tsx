@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Button, Card, Empty, InputNumber, Space, Spin, Tooltip, message } from 'antd'
 import request from '../api/request'
+import './utilities-mobile.css'
 
 interface LatestTask {
   id?: number
@@ -39,11 +40,11 @@ function MiniMonth({ year, month, tradeSet, todayKey }: MiniMonthProps) {
     <div className="rounded-lg border border-white/10 bg-white/[0.02] p-3">
       <div className="mb-2 flex items-baseline justify-between">
         <span className="font-medium">{MONTH_LABELS[month]}</span>
-        <span className="text-xs text-gray-500">{tradeCount} 天</span>
+        <span className="text-xs text-gray-400">{tradeCount} 天</span>
       </div>
       <div className="grid grid-cols-7 gap-1 text-center text-[11px]">
-        {WEEK_LABELS.map((w, i) => (
-          <div key={w} className={i === 0 || i === 6 ? 'text-gray-600' : 'text-gray-500'}>
+        {WEEK_LABELS.map((w) => (
+          <div key={w} className="text-gray-400">
             {w}
           </div>
         ))}
@@ -55,11 +56,17 @@ function MiniMonth({ year, month, tradeSet, todayKey }: MiniMonthProps) {
           const base = 'flex h-6 items-center justify-center rounded'
           const tone = isTrade
             ? 'bg-green-600/90 text-white font-medium'
-            : 'text-gray-600'
+            : 'text-gray-400'
           const ring = isToday ? ' ring-1 ring-amber-400' : ''
           const cell = (
-            <div key={d} className={`${base} ${tone}${ring}`}>
-              {d}
+            <div
+              key={d}
+              className={`${base} ${tone}${ring}`}
+            >
+              <span aria-hidden="true">{d}</span>
+              <span className="sr-only">
+                {key}，{isTrade ? '交易日' : '非交易日'}{isToday ? '，今天' : ''}
+              </span>
             </div>
           )
           return isTrade ? (
@@ -135,40 +142,41 @@ export default function TradeCalendar() {
 
   return (
     <Card
+      className="qfund-calendar-card"
       title={
-        <Space>
+        <div className="qfund-calendar-heading">
           <span>交易日历</span>
-          <span className="text-sm font-normal text-gray-500">
+          <span className="text-sm font-normal text-gray-400">
             {year} 年 · {dates.length} 个交易日
           </span>
-        </Space>
+        </div>
       }
       extra={
-        <Space>
+        <div className="qfund-calendar-controls">
           <InputNumber
+            aria-label="查询年份"
             value={year}
             min={2000}
             max={2100}
             onChange={(v) => v && setYear(v)}
-            style={{ width: 100 }}
           />
           <Button onClick={loadDates}>查询</Button>
           <Button type="primary" onClick={sync} loading={syncing}>
             同步交易日历
           </Button>
-        </Space>
+        </div>
       }
     >
-      <div className="mb-4 flex items-center justify-between text-gray-400">
+      <div className="qfund-calendar-legend mb-4 flex items-center justify-between text-gray-400">
         <span>
           最近同步：{latest.status ?? '无'}（{latest.target_count ?? 0} 个日期）
         </span>
         <Space size={16} className="text-xs">
           <span className="flex items-center gap-1">
-            <span className="inline-block h-3 w-3 rounded bg-green-600/90" /> 交易日
+            <span aria-hidden="true" className="inline-block h-3 w-3 rounded bg-green-600/90" /> 交易日
           </span>
           <span className="flex items-center gap-1">
-            <span className="inline-block h-3 w-3 rounded ring-1 ring-amber-400" /> 今天
+            <span aria-hidden="true" className="inline-block h-3 w-3 rounded ring-1 ring-amber-400" /> 今天
           </span>
         </Space>
       </div>

@@ -2,6 +2,8 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Button, Card, Form, Input, Tabs, message } from 'antd'
 import request from '../api/request'
+import { ALLOW_REGISTRATION, AUTH_TOKEN_KEY } from '../config'
+import './utilities-mobile.css'
 
 interface FormValues {
   username: string
@@ -16,14 +18,14 @@ export default function Login() {
   const onFinish = async (values: FormValues) => {
     setLoading(true)
     try {
-      if (mode === 'register') {
+      if (ALLOW_REGISTRATION && mode === 'register') {
         await request.post('/auth/register', values)
         message.success('注册成功，请登录')
         setMode('login')
         return
       }
       const { data } = await request.post('/auth/login', values)
-      localStorage.setItem('token', data.access_token)
+      localStorage.setItem(AUTH_TOKEN_KEY, data.access_token)
       message.success('登录成功')
       navigate('/')
     } catch (e: unknown) {
@@ -37,28 +39,30 @@ export default function Login() {
   }
 
   return (
-    <div className="flex items-center justify-center" style={{ minHeight: '100vh' }}>
-      <Card style={{ width: 380 }} title="iFund · 公募基金筛选系统">
-        <Tabs
-          activeKey={mode}
-          onChange={(k) => setMode(k as 'login' | 'register')}
-          items={[
-            { key: 'login', label: '登录' },
-            { key: 'register', label: '注册' },
-          ]}
-        />
+    <main className="qfund-login-screen">
+      <Card className="qfund-login-card" title="Qfund · 公募基金筛选系统">
+        {ALLOW_REGISTRATION && (
+          <Tabs
+            activeKey={mode}
+            onChange={(k) => setMode(k as 'login' | 'register')}
+            items={[
+              { key: 'login', label: '登录' },
+              { key: 'register', label: '注册' },
+            ]}
+          />
+        )}
         <Form layout="vertical" onFinish={onFinish}>
           <Form.Item name="username" label="用户名" rules={[{ required: true }]}>
             <Input autoComplete="username" />
           </Form.Item>
           <Form.Item name="password" label="密码" rules={[{ required: true }]}>
-            <Input.Password autoComplete="current-password" />
+            <Input.Password autoComplete={mode === 'register' ? 'new-password' : 'current-password'} />
           </Form.Item>
           <Button type="primary" htmlType="submit" block loading={loading}>
             {mode === 'login' ? '登录' : '注册'}
           </Button>
         </Form>
       </Card>
-    </div>
+    </main>
   )
 }

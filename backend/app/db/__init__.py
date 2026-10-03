@@ -52,6 +52,11 @@ def batch_insert(table: str, rows: list[dict], batch_size: int = 500) -> None:
     get_db().batch_insert(table, rows, batch_size)
 
 
+def replace_partitions(table: str, rows: list[dict], partition_columns: tuple[str, ...]) -> None:
+    """委托单例：事务内替换实际返回的分区，保留未返回分区。"""
+    get_db().replace_partitions(table, rows, partition_columns)
+
+
 def update(table: str, filters: dict, data: dict) -> None:
     """委托单例：按过滤条件更新。"""
     get_db().update(table, filters, data)

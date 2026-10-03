@@ -38,7 +38,6 @@ export default function BacktestCard({ data }: { data: BacktestResult }) {
   const STRAT = token.colorPrimary
   const EQUAL = token.colorTextTertiary
   const fmtTick = (d: string) => `${d.slice(2, 4)}/${d.slice(5, 7)}`
-  const tickGap = Math.max(1, Math.floor(merged.length / 8))
   const axisTick = { fontSize: 11, fill: token.colorTextTertiary }
   const tooltipStyle = {
     background: token.colorBgElevated,
@@ -58,11 +57,11 @@ export default function BacktestCard({ data }: { data: BacktestResult }) {
   ]
 
   return (
-    <Card size="small" title="回测验证：动量调权 vs 等权">
+    <Card size="small" title="回测验证：动量调权 vs 等权" className="qfund-position-backtest-card">
       <Alert type={verdict.type} showIcon message={verdict.text} style={{ marginBottom: 12 }} />
 
-      <Row gutter={16} style={{ marginBottom: 8 }}>
-        <Col span={8}>
+      <Row gutter={[12, 16]} style={{ marginBottom: 8 }}>
+        <Col xs={24} sm={8}>
           <Statistic
             title="动量调权 累计"
             value={stratTotal * 100}
@@ -71,7 +70,7 @@ export default function BacktestCard({ data }: { data: BacktestResult }) {
             valueStyle={{ color: stratTotal >= 0 ? '#f5222d' : '#52c41a', fontSize: 20 }}
           />
         </Col>
-        <Col span={8}>
+        <Col xs={24} sm={8}>
           <Statistic
             title="等权 累计"
             value={equalTotal * 100}
@@ -80,7 +79,7 @@ export default function BacktestCard({ data }: { data: BacktestResult }) {
             valueStyle={{ color: equalTotal >= 0 ? '#f5222d' : '#52c41a', fontSize: 20 }}
           />
         </Col>
-        <Col span={8}>
+        <Col xs={24} sm={8}>
           <Statistic
             title="年化超额"
             value={excessAnnual * 100}
@@ -98,11 +97,11 @@ export default function BacktestCard({ data }: { data: BacktestResult }) {
       <ResponsiveContainer width="100%" height={240}>
         <LineChart data={merged} margin={{ top: 8, right: 12, left: 0, bottom: 0 }}>
           <CartesianGrid strokeDasharray="3 3" stroke={token.colorBorderSecondary} />
-          <XAxis dataKey="date" tickFormatter={fmtTick} interval={tickGap} tick={axisTick} minTickGap={16} />
+          <XAxis dataKey="date" tickFormatter={fmtTick} interval="preserveStartEnd" tick={axisTick} minTickGap={28} />
           <YAxis domain={['auto', 'auto']} tickFormatter={(v) => `${v}%`} width={48} tick={axisTick} />
           <Tooltip
             labelFormatter={(d) => `日期 ${d}`}
-            formatter={(v: number, name) => [`${v.toFixed(2)}%`, name === 'strat' ? '动量调权' : '等权']}
+            formatter={(v, name) => [`${Number(v ?? 0).toFixed(2)}%`, name === 'strat' ? '动量调权' : '等权']}
             contentStyle={tooltipStyle}
             labelStyle={{ color: token.colorTextSecondary }}
             itemStyle={{ color: token.colorText }}
@@ -119,6 +118,7 @@ export default function BacktestCard({ data }: { data: BacktestResult }) {
         size="small"
         rowKey="key"
         pagination={false}
+        scroll={{ x: 440 }}
         dataSource={rows}
         columns={[
           { title: '指标', dataIndex: 'metric', width: 120 },

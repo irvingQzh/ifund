@@ -1,9 +1,10 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
+import { AUTH_TOKEN_KEY } from './config'
 
 function RequireAuth({ children }: { children: JSX.Element }) {
-  const token = localStorage.getItem('token')
+  const token = localStorage.getItem(AUTH_TOKEN_KEY)
   return token ? children : <Navigate to="/login" replace />
 }
 

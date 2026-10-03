@@ -1,0 +1,187 @@
+.qfund-mobile-holdings {
+  display: none;
+}
+
+.qfund-holdings-card .ant-card-head-title {
+  min-width: 0;
+  white-space: normal;
+}
+
+.qfund-holdings-title {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+}
+
+.qfund-holdings-overview {
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+@media (max-width: 767px) {
+  .qfund-holdings-card .ant-card-head-wrapper {
+    align-items: flex-start;
+  }
+
+  .qfund-holdings-card .ant-card-body {
+    padding: 12px;
+  }
+
+  .qfund-holdings-title {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .qfund-holdings-overview {
+    font-size: 13px;
+  }
+
+  .qfund-holdings-refresh {
+    min-height: 44px;
+  }
+
+  .qfund-desktop-holdings-table {
+    display: none;
+  }
+
+  .qfund-mobile-holdings {
+    display: grid;
+    gap: 4px;
+  }
+
+  .qfund-mobile-cluster {
+    margin-top: 14px;
+    padding: 10px 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.18);
+  }
+
+  .qfund-holding-item {
+    padding: 14px 0 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  }
+
+  .qfund-holding-heading,
+  .qfund-holding-value-row,
+  .qfund-holding-result {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .qfund-holding-name {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .qfund-holding-name strong {
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1.4;
+  }
+
+  .qfund-holding-name > span {
+    color: rgba(255, 255, 255, 0.65);
+    font-size: 13px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .qfund-holding-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  .qfund-holding-tags .ant-tag {
+    margin-inline-end: 0;
+  }
+
+  .qfund-holding-value-row {
+    align-items: flex-end;
+    margin-top: 14px;
+  }
+
+  .qfund-holding-value-row > div {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  .qfund-holding-label,
+  .qfund-holding-ratio {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 13px;
+  }
+
+  .qfund-holding-value {
+    font-size: 22px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.25;
+  }
+
+  .qfund-holding-result {
+    justify-content: flex-start;
+    margin-top: 12px;
+    color: rgba(255, 255, 255, 0.75);
+    font-size: 14px;
+  }
+
+  .qfund-holding-result strong {
+    color: #fff;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .qfund-holding-result .qfund-gain {
+    color: #ff7875;
+  }
+
+  .qfund-holding-result .qfund-loss {
+    color: #95de64;
+  }
+
+  .qfund-holding-details {
+    margin-top: 8px;
+  }
+
+  .qfund-holding-details summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 44px;
+    color: #69b1ff;
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+
+  .qfund-holding-details[open] summary .anticon {
+    transform: rotate(180deg);
+  }
+
+  .qfund-holding-details dl {
+    display: grid;
+    gap: 8px;
+    margin: 0 0 4px;
+  }
+
+  .qfund-holding-details dl > div {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .qfund-holding-details dt {
+    color: rgba(255, 255, 255, 0.7);
+  }
+
+  .qfund-holding-details dd {
+    margin: 0;
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+  }
+}

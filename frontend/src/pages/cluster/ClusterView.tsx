@@ -4,6 +4,7 @@ import { ClusterOutlined } from '@ant-design/icons'
 import request from '../../api/request'
 import ClusterCard from './ClusterCard'
 import type { ClusterResult } from './types'
+import './cluster-mobile.css'
 
 // ② 行业暴露聚类视图：对共享预设的镜像快照做聚类分析。
 // presetId 由工作台容器下传；预设变化时自动运行聚类。
@@ -41,7 +42,7 @@ const ClusterView = forwardRef<
   const meta = result?.meta
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+    <div className="qfund-cluster-view" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       <Space wrap>
         <Button type="primary" icon={<ClusterOutlined />} loading={loading} onClick={run}>
           运行聚类

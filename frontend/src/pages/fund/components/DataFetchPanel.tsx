@@ -34,6 +34,7 @@ export default function DataFetchPanel({
     <Card
       size="small"
       title="数据拉取"
+      className="fund-fetch-panel"
       extra={
         <Button size="small" icon={<ReloadOutlined />} onClick={onSync} loading={syncing}>
           同步基金名单

@@ -1,0 +1,322 @@
+.qfund-workbench,
+.qfund-workbench-tabs,
+.qfund-workbench-tabs .ant-tabs-content-holder,
+.qfund-position-view,
+.qfund-mirror-view {
+  min-width: 0;
+}
+
+.qfund-workbench {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.qfund-workbench-preset-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+.qfund-workbench-preset-row label {
+  font-weight: 500;
+}
+
+.qfund-workbench-preset-select {
+  min-width: 260px;
+}
+
+.qfund-workbench-preset-help {
+  color: inherit;
+  font-size: 12px;
+  opacity: 0.72;
+}
+
+.qfund-position-view {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.qfund-position-simple-mobile,
+.qfund-mirror-mobile-list,
+.qfund-mirror-mobile-pager {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .qfund-workbench-preset-row {
+    display: block;
+  }
+
+  .qfund-workbench-preset-row label {
+    display: block;
+    margin-bottom: 8px;
+  }
+
+  .qfund-workbench-preset-select {
+    width: 100%;
+    min-width: 0;
+    height: 44px;
+  }
+
+  .qfund-workbench-preset-help {
+    display: block;
+    margin-top: 8px;
+    line-height: 1.5;
+  }
+
+  .qfund-workbench-preset .ant-select-selector,
+  .qfund-mirror-ai-filter .ant-select-selector {
+    min-height: 44px;
+    align-items: center;
+  }
+
+  .qfund-workbench-tabs .ant-tabs-nav {
+    margin-bottom: 12px;
+  }
+
+  .qfund-workbench-tabs .ant-tabs-tab {
+    min-height: 44px;
+    margin-inline: 0 16px;
+  }
+
+  .qfund-mirror-toolbar .ant-space-item,
+  .qfund-position-controls .ant-space-item {
+    max-width: 100%;
+  }
+
+  .qfund-mirror-toolbar .ant-btn,
+  .qfund-position-controls .ant-btn {
+    min-height: 44px;
+  }
+
+  .qfund-position-controls .ant-segmented,
+  .qfund-position-lookthrough-card .ant-segmented,
+  .qfund-position-chart-card .ant-segmented {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: stretch;
+  }
+
+  .qfund-position-controls .ant-segmented-item,
+  .qfund-position-lookthrough-card .ant-segmented-item,
+  .qfund-position-chart-card .ant-segmented-item {
+    display: flex;
+    align-items: center;
+  }
+
+  .qfund-position-view .ant-card-head-wrapper,
+  .qfund-mirror-section .ant-card-head-wrapper {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .qfund-position-view .ant-card-head-title,
+  .qfund-mirror-section .ant-card-head-title {
+    white-space: normal;
+    overflow: visible;
+  }
+
+  .qfund-position-view .ant-card-extra {
+    margin-inline-start: 0;
+    max-width: 100%;
+  }
+
+  .qfund-position-row {
+    gap: 12px !important;
+  }
+
+  .qfund-position-row-weight,
+  .qfund-position-row-main,
+  .qfund-position-row-metrics,
+  .qfund-position-row-holdings,
+  .qfund-position-row-momentum {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    flex-basis: 100% !important;
+  }
+
+  .qfund-position-row-main,
+  .qfund-position-row-momentum {
+    overflow-wrap: anywhere;
+  }
+
+  .qfund-position-ai-verdict {
+    max-width: 100% !important;
+    overflow: visible !important;
+    white-space: normal !important;
+    text-overflow: clip !important;
+  }
+
+  .qfund-mirror-prompt-drawer .ant-drawer-header-title {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .qfund-mirror-prompt-drawer .ant-drawer-extra {
+    margin-inline-start: 0;
+  }
+
+  .qfund-position-simple-table,
+  .qfund-mirror-table {
+    display: none;
+  }
+
+  .qfund-position-simple-mobile,
+  .qfund-mirror-mobile-list {
+    display: block;
+  }
+
+  .qfund-position-simple-item,
+  .qfund-mirror-mobile-item {
+    padding: 16px 0;
+    border-bottom: 1px solid rgba(140, 140, 140, 0.28);
+  }
+
+  .qfund-position-simple-item:last-child,
+  .qfund-mirror-mobile-item:last-child {
+    border-bottom: 0;
+  }
+
+  .qfund-position-simple-main,
+  .qfund-mirror-mobile-heading {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    min-width: 0;
+  }
+
+  .qfund-position-simple-identity,
+  .qfund-mirror-mobile-identity {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+  }
+
+  .qfund-position-simple-identity strong,
+  .qfund-mirror-mobile-identity strong {
+    font-size: 16px;
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+  }
+
+  .qfund-position-simple-identity span,
+  .qfund-mirror-mobile-identity span {
+    color: inherit;
+    font-size: 13px;
+    opacity: 0.72;
+  }
+
+  .qfund-position-simple-weight {
+    flex-shrink: 0;
+    font-size: 20px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .qfund-position-simple-ai,
+  .qfund-mirror-mobile-ai {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 8px;
+    margin-top: 12px;
+    color: inherit;
+    font-size: 13px;
+  }
+
+  .qfund-position-simple-ai .ant-tag,
+  .qfund-mirror-mobile-ai .ant-tag {
+    margin-inline-end: 0;
+  }
+
+  .qfund-position-simple-item p,
+  .qfund-mirror-mobile-context {
+    margin: 10px 0 0;
+    color: inherit;
+    font-size: 13px;
+    line-height: 1.5;
+    opacity: 0.72;
+    overflow-wrap: anywhere;
+  }
+
+  .qfund-position-simple-item .ant-btn,
+  .qfund-mirror-mobile-actions .ant-btn {
+    min-height: 44px;
+    padding-inline: 0;
+    touch-action: manipulation;
+  }
+
+  .qfund-mirror-mobile-metrics {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    margin: 14px 0 0;
+  }
+
+  .qfund-mirror-mobile-metrics dt {
+    color: inherit;
+    font-size: 12px;
+    opacity: 0.72;
+  }
+
+  .qfund-mirror-mobile-metrics dd {
+    margin: 4px 0 0;
+    font-size: 16px;
+    font-variant-numeric: tabular-nums;
+    overflow-wrap: anywhere;
+  }
+
+  .qfund-mirror-mobile-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 16px;
+    margin-top: 8px;
+  }
+
+  .qfund-mirror-mobile-pager {
+    display: flex;
+    justify-content: center;
+    margin-top: 12px;
+  }
+
+  .qfund-mirror-mobile-loading {
+    padding: 40px 0;
+    text-align: center;
+  }
+
+  .qfund-mirror-mobile-pager .ant-pagination-prev,
+  .qfund-mirror-mobile-pager .ant-pagination-next {
+    min-width: 44px;
+    min-height: 44px;
+    line-height: 44px;
+  }
+
+  .qfund-mirror-ai-filter .ant-select {
+    width: 100%;
+    min-width: 0 !important;
+  }
+
+  .qfund-mirror-ai-filter .ant-radio-group {
+    display: flex;
+    flex-wrap: wrap;
+  }
+
+  .qfund-mirror-ai-filter .ant-radio-button-wrapper {
+    min-height: 40px;
+    line-height: 38px;
+  }
+
+  .qfund-mirror-ai-filter > .ant-btn {
+    min-height: 44px;
+  }
+
+  .qfund-position-backtest-card .ant-table-wrapper,
+  .qfund-position-lookthrough-card .ant-table-wrapper {
+    max-width: 100%;
+  }
+}

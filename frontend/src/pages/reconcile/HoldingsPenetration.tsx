@@ -3,6 +3,7 @@ import { Button, Card, Empty, Segmented, Table, Typography, message } from 'antd
 import { ReloadOutlined } from '@ant-design/icons'
 import request from '../../api/request'
 import type { HoldingsPenetration as Penetration, PenetrationIndustry, PenetrationStock } from './types'
+import './reconcile-advice-mobile.css'
 
 const pct = (v: number, d = 2) => `${v.toLocaleString('zh-CN', { maximumFractionDigits: d })}%`
 
@@ -36,12 +37,13 @@ export default function HoldingsPenetration({
 
   return (
     <Card
+      className="reconcile-card reconcile-penetration-card"
       size="small"
       title={
-        <span>
+        <span className="reconcile-penetration-title">
           底层穿透
           {data && (
-            <Typography.Text type="secondary" style={{ fontSize: 12, fontWeight: 'normal', marginLeft: 8 }}>
+            <Typography.Text className="reconcile-penetration-meta" type="secondary" style={{ fontSize: 12, fontWeight: 'normal' }}>
               市值 {data.total_market_value.toLocaleString('zh-CN', { maximumFractionDigits: 0 })} 元 ·
               前十大可见仓位 {pct(data.visible_position_pct)}
             </Typography.Text>
@@ -49,13 +51,12 @@ export default function HoldingsPenetration({
         </span>
       }
       extra={
-        <span>
+        <span className="reconcile-penetration-actions">
           <Segmented
             size="small"
             value={by}
             onChange={(v) => setBy(v as 'industry' | 'stock')}
             options={[{ label: '按行业', value: 'industry' }, { label: '按个股', value: 'stock' }]}
-            style={{ marginRight: 8 }}
           />
           <Button size="small" icon={<ReloadOutlined />} onClick={load}>刷新</Button>
         </span>
@@ -74,6 +75,7 @@ export default function HoldingsPenetration({
           rowKey="industry"
           loading={loading}
           dataSource={data!.industries}
+          scroll={{ x: 440 }}
           pagination={data!.industries.length > 10 ? {
             defaultPageSize: 10,
             size: 'small',
@@ -96,6 +98,7 @@ export default function HoldingsPenetration({
           rowKey="code"
           loading={loading}
           dataSource={data!.stocks}
+          scroll={{ x: 740 }}
           pagination={{
             defaultPageSize: 20,
             size: 'small',
@@ -110,6 +113,7 @@ export default function HoldingsPenetration({
                 rowKey={(f) => f.fund}
                 dataSource={row.funds}
                 pagination={false}
+                scroll={{ x: 500 }}
                 columns={[
                   { title: '来源基金', dataIndex: 'fund' },
                   {

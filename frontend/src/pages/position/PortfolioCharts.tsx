@@ -76,8 +76,6 @@ export default function PortfolioCharts({ portfolio }: { portfolio: Portfolio })
   const gain = (v: number) => (v >= 0 ? '#f5222d' : '#52c41a') // 涨红跌绿
 
   const fmtTick = (d: string) => `${d.slice(2, 4)}/${d.slice(5, 7)}`
-  const tickGap = Math.max(1, Math.floor(curve.length / 8))
-
   const axisTick = { fontSize: 11, fill: token.colorTextTertiary }
   const tooltipStyle = {
     background: token.colorBgElevated,
@@ -88,6 +86,7 @@ export default function PortfolioCharts({ portfolio }: { portfolio: Portfolio })
 
   return (
     <Card
+      className="qfund-position-chart-card"
       size="small"
       title="组合表现"
       extra={
@@ -99,8 +98,8 @@ export default function PortfolioCharts({ portfolio }: { portfolio: Portfolio })
         />
       }
     >
-      <Row gutter={16} style={{ marginBottom: 4 }}>
-        <Col span={6}>
+      <Row gutter={[12, 16]} style={{ marginBottom: 4 }}>
+        <Col xs={12} sm={6}>
           <Statistic
             title="累计收益"
             value={totalReturn * 100}
@@ -109,7 +108,7 @@ export default function PortfolioCharts({ portfolio }: { portfolio: Portfolio })
             valueStyle={{ color: gain(totalReturn), fontSize: 20 }}
           />
         </Col>
-        <Col span={6}>
+        <Col xs={12} sm={6}>
           <Statistic
             title="年化收益"
             value={annualReturn * 100}
@@ -118,7 +117,7 @@ export default function PortfolioCharts({ portfolio }: { portfolio: Portfolio })
             valueStyle={{ color: gain(annualReturn), fontSize: 20 }}
           />
         </Col>
-        <Col span={6}>
+        <Col xs={12} sm={6}>
           <Statistic
             title="最大回撤"
             value={-maxDrawdown * 100}
@@ -127,7 +126,7 @@ export default function PortfolioCharts({ portfolio }: { portfolio: Portfolio })
             valueStyle={{ color: token.colorWarning, fontSize: 20 }}
           />
         </Col>
-        <Col span={6}>
+        <Col xs={12} sm={6}>
           <Statistic
             title="夏普比率"
             value={sharpe}
@@ -150,11 +149,11 @@ export default function PortfolioCharts({ portfolio }: { portfolio: Portfolio })
             </linearGradient>
           </defs>
           <CartesianGrid strokeDasharray="3 3" stroke={token.colorBorderSecondary} />
-          <XAxis dataKey="date" tickFormatter={fmtTick} interval={tickGap} tick={axisTick} minTickGap={16} />
+          <XAxis dataKey="date" tickFormatter={fmtTick} interval="preserveStartEnd" tick={axisTick} minTickGap={28} />
           <YAxis domain={['auto', 'auto']} tickFormatter={(v) => `${v}%`} width={48} tick={axisTick} />
           <Tooltip
             labelFormatter={(d) => `日期 ${d}`}
-            formatter={(v: number) => [`${v.toFixed(2)}%`, '累计收益率']}
+            formatter={(v) => [`${Number(v ?? 0).toFixed(2)}%`, '累计收益率']}
             contentStyle={tooltipStyle}
             labelStyle={{ color: token.colorTextSecondary }}
             itemStyle={{ color: token.colorText }}
@@ -175,11 +174,11 @@ export default function PortfolioCharts({ portfolio }: { portfolio: Portfolio })
             </linearGradient>
           </defs>
           <CartesianGrid strokeDasharray="3 3" stroke={token.colorBorderSecondary} />
-          <XAxis dataKey="date" tickFormatter={fmtTick} interval={tickGap} tick={axisTick} minTickGap={16} />
+          <XAxis dataKey="date" tickFormatter={fmtTick} interval="preserveStartEnd" tick={axisTick} minTickGap={28} />
           <YAxis domain={['auto', 0]} tickFormatter={(v) => `${v}%`} width={48} tick={axisTick} />
           <Tooltip
             labelFormatter={(d) => `日期 ${d}`}
-            formatter={(v: number) => [`${v.toFixed(2)}%`, '回撤']}
+            formatter={(v) => [`${Number(v ?? 0).toFixed(2)}%`, '回撤']}
             contentStyle={tooltipStyle}
             labelStyle={{ color: token.colorTextSecondary }}
             itemStyle={{ color: token.colorText }}

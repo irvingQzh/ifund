@@ -67,7 +67,6 @@ export default function NavTrendModal({ code, name, open, onClose }: Props) {
 
   const first = sliced[0]?.nav ?? 0
   const last = sliced[sliced.length - 1]?.nav ?? 0
-  const pct = first ? ((last - first) / first) * 100 : 0
   const lineColor = last >= first ? UP : DOWN
 
   // 顶部展示：默认末点，hover 时跟随准星
@@ -84,11 +83,12 @@ export default function NavTrendModal({ code, name, open, onClose }: Props) {
       onCancel={onClose}
       footer={null}
       width={720}
+      className="fund-trend-modal"
       title={`${name ?? ''} 净值走势`}
       destroyOnClose
     >
-      <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 12, marginBottom: 8 }}>
-        <div style={{ display: 'flex', gap: 24 }}>
+      <div className="fund-chart-header">
+        <div className="fund-chart-stats">
           <Statistic
             title={shown ? `净值 · ${shown.date}` : '净值'}
             value={shown ? shown.nav : 0}
@@ -104,7 +104,7 @@ export default function NavTrendModal({ code, name, open, onClose }: Props) {
             valueStyle={{ fontSize: 22, color: shownPct >= 0 ? UP : DOWN }}
           />
         </div>
-        <Segmented size="small" options={RANGES} value={range} onChange={(v) => setRange(v as number)} />
+        <Segmented className="fund-chart-ranges" size="small" options={RANGES} value={range} onChange={(v) => setRange(v as number)} />
       </div>
 
       {loading ? (
@@ -119,7 +119,7 @@ export default function NavTrendModal({ code, name, open, onClose }: Props) {
             data={sliced}
             margin={{ top: 8, right: 16, left: 0, bottom: 0 }}
             onMouseMove={(s) => {
-              const p = s?.activePayload?.[0]?.payload as NavPoint | undefined
+              const p = (s as { activePayload?: { payload?: NavPoint }[] })?.activePayload?.[0]?.payload
               if (p) setActive(p)
             }}
             onMouseLeave={() => setActive(null)}

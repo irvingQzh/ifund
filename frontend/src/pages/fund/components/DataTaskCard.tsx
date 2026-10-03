@@ -17,7 +17,7 @@ export default function DataTaskCard({ title, module, task, onStart, onTerminate
       : 0
 
   return (
-    <Card size="small" title={title} className="h-full">
+    <Card size="small" title={title} className="fund-task-card h-full">
       <Space direction="vertical" className="w-full" style={{ width: '100%' }}>
         {task ? (
           <>

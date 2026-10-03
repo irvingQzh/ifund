@@ -126,8 +126,8 @@ const PositionView = forwardRef<
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      <Space wrap>
+    <div className="qfund-position-view">
+      <Space wrap className="qfund-position-controls">
         <Button type="primary" icon={<FundOutlined />} loading={loading} onClick={() => run()}>
           生成仓位建议
         </Button>
@@ -138,6 +138,7 @@ const PositionView = forwardRef<
         </Tooltip>
         <Tooltip title="单一行业穿透占比上限：松=22%（行业更集中、更少替换 TOP1），中=18%，紧=14%（默认；更分散，逼系统为降相关多选行业不重叠的次优基金）。切换会立即重算。">
           <Segmented
+            className="qfund-position-balance"
             value={cap}
             disabled={loading}
             onChange={(v) => onCapChange(v as number)}
@@ -245,12 +246,62 @@ const PositionView = forwardRef<
           {shownItems.length === 0 ? (
             <Empty description="所选股票/行业未命中任何代表基金" />
           ) : viewMode === 'simple' ? (
-            <Table
-              size="small"
-              rowKey="cluster_id"
-              dataSource={shownItems}
-              pagination={false}
-              columns={[
+            <>
+              <div className="qfund-position-simple-mobile">
+                {shownItems.map((it) => (
+                  <article className="qfund-position-simple-item" key={it.cluster_id}>
+                    <div className="qfund-position-simple-main">
+                      <div className="qfund-position-simple-identity">
+                        <strong>{it.fund.name}</strong>
+                        <span>{it.fund.code} · 簇 {it.cluster_id}</span>
+                      </div>
+                      <strong className="qfund-position-simple-weight">{(it.weight * 100).toFixed(1)}%</strong>
+                    </div>
+                    <div className="qfund-position-simple-ai">
+                      {!it.fund.ai ? (
+                        <span>AI 未分析</span>
+                      ) : (
+                        <>
+                          {it.fund.ai.rating != null && (
+                            <span aria-label={`AI 评级 ${it.fund.ai.rating} 星`}>
+                              {'★'.repeat(Math.max(0, Math.min(3, Number(it.fund.ai.rating)))) || '0 星'}
+                            </span>
+                          )}
+                          {it.fund.ai.skill_score != null && <span>实力分 {it.fund.ai.skill_score}</span>}
+                          {metaOf(LUCK_META, it.fund.ai.luck_verdict) && (
+                            <Tag color={metaOf(LUCK_META, it.fund.ai.luck_verdict)?.color}>
+                              {metaOf(LUCK_META, it.fund.ai.luck_verdict)?.label}
+                            </Tag>
+                          )}
+                          {metaOf(CONC_META, it.fund.ai.concentration) && (
+                            <Tag color={metaOf(CONC_META, it.fund.ai.concentration)?.color}>
+                              {metaOf(CONC_META, it.fund.ai.concentration)?.label}
+                            </Tag>
+                          )}
+                          {metaOf(KIND_META, it.fund.ai.fund_kind) && (
+                            <Tag color={metaOf(KIND_META, it.fund.ai.fund_kind)?.color}>
+                              {metaOf(KIND_META, it.fund.ai.fund_kind)?.label}
+                            </Tag>
+                          )}
+                          {it.fund.ai.recommend === 0 && <Tag color="red">不建议</Tag>}
+                        </>
+                      )}
+                    </div>
+                    {it.fund.ai?.verdict && <p>{it.fund.ai.verdict}</p>}
+                    <Button type="link" onClick={() => setDetailCode(it.fund.code)}>
+                      查看基金详情
+                    </Button>
+                  </article>
+                ))}
+              </div>
+              <Table
+                className="qfund-position-simple-table"
+                size="small"
+                rowKey="cluster_id"
+                dataSource={shownItems}
+                pagination={false}
+                scroll={{ x: 680 }}
+                columns={[
                 {
                   title: '基金名称',
                   dataIndex: ['fund', 'name'],
@@ -297,8 +348,9 @@ const PositionView = forwardRef<
                     )
                   },
                 },
-              ]}
-            />
+                ]}
+              />
+            </>
           ) : (
             shownItems.map((it) => (
               <PositionRow

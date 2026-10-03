@@ -5,6 +5,7 @@ import {
 import { DeleteOutlined, ImportOutlined, ReloadOutlined } from '@ant-design/icons'
 import request from '../../api/request'
 import type { UserHolding } from './types'
+import './reconcile-mobile.css'
 
 const { TextArea } = Input
 
@@ -57,6 +58,9 @@ export default function HoldingsEditor({
         fund_code: code, fund_name: name, market_value: round2(mv),
         cost: cost == null ? null : round2(cost),
       })
+      setItems((prev) => prev.map((h) => h.fund_code === code
+        ? { ...h, market_value: round2(mv), cost: cost == null ? null : round2(cost) }
+        : h))
       onChanged?.()
     } catch {
       message.error('保存失败')
@@ -99,7 +103,7 @@ export default function HoldingsEditor({
           ...(cost !== undefined ? { cost } : {}),
         }
       })
-      .filter((r) => (r.fund_code || r.fund_name) && r.market_value > 0)
+      .filter((r) => ('fund_code' in r ? r.fund_code : r.fund_name) && r.market_value > 0)
     if (rows.length === 0) {
       message.warning('未解析到有效行（格式：名称或代码 市值 [持有收益]，每行一只）')
       return
@@ -126,13 +130,65 @@ export default function HoldingsEditor({
 
   const total = items.reduce((s, h) => s + (h.market_value || 0), 0)
 
+  const marketValueInput = (row: UserHolding, mobile = false) => (
+    <InputNumber
+      value={row.market_value}
+      min={0}
+      precision={2}
+      inputMode="decimal"
+      className={mobile ? 'reconcile-mobile-input' : undefined}
+      style={{ width: mobile ? '100%' : 150 }}
+      formatter={groupInt}
+      parser={(x) => Number((x || '').replace(/,/g, ''))}
+      onBlur={(e) => {
+        const mv = Number((e.target.value || '').replace(/,/g, ''))
+        if (!Number.isFinite(mv) || mv === row.market_value) return
+        // 改市值时保持持有收益不变 → 成本随之调整
+        const oldPnl = row.cost == null ? null : (row.market_value || 0) - row.cost
+        const cost = oldPnl == null ? null : mv - oldPnl
+        saveValue(row.fund_code, row.fund_name, mv, cost)
+      }}
+    />
+  )
+
+  const pnlInput = (row: UserHolding, mobile = false) => {
+    const pnl = row.cost == null ? null : round2((row.market_value || 0) - row.cost)
+    const color = pnl == null ? undefined : pnl > 0 ? '#f5222d' : pnl < 0 ? '#52c41a' : undefined
+    return (
+      <InputNumber
+        value={pnl}
+        precision={2}
+        inputMode="decimal"
+        className={mobile ? 'reconcile-mobile-input' : undefined}
+        style={{ width: mobile ? '100%' : 140, color }}
+        placeholder="未填"
+        formatter={groupInt}
+        parser={(x) => Number((x || '').replace(/[,+]/g, ''))}
+        onChange={(val) => {
+          // 清空 → 成本置空（未提供）
+          if (val === null || val === undefined) {
+            if (row.cost != null) saveValue(row.fund_code, row.fund_name, row.market_value, null)
+          }
+        }}
+        onBlur={(e) => {
+          const raw = (e.target.value || '').replace(/[,+]/g, '')
+          if (raw === '') return
+          const newPnl = Number(raw)
+          if (!Number.isFinite(newPnl) || newPnl === pnl) return
+          // 改持有收益时保持市值不变 → 成本 = 市值 − 持有收益
+          saveValue(row.fund_code, row.fund_name, row.market_value, (row.market_value || 0) - newPnl)
+        }}
+      />
+    )
+  }
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+    <div className="snapshot-editor" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       <Card
         size="small"
         title={`初始化快照（共 ${items.length} 只 · 合计 ${total.toLocaleString('zh-CN', { maximumFractionDigits: 0 })} 元）`}
         extra={
-          <Button size="small" icon={<ReloadOutlined />} onClick={load}>
+          <Button size="small" icon={<ReloadOutlined />} loading={loading} onClick={load}>
             刷新
           </Button>
         }
@@ -146,12 +202,15 @@ export default function HoldingsEditor({
         {items.length === 0 ? (
           <Empty description="暂无快照，请在下方粘贴导入首次建仓金额" />
         ) : (
-          <Table
+          <>
+            <Table
+            className="snapshot-desktop-table"
             size="small"
             rowKey="fund_code"
             loading={loading}
             dataSource={items}
             pagination={false}
+            scroll={{ x: 760 }}
             columns={[
               {
                 title: '基金编码',
@@ -165,88 +224,80 @@ export default function HoldingsEditor({
                 dataIndex: 'market_value',
                 width: 180,
                 align: 'right',
-                render: (v: number, row) => (
-                  <InputNumber
-                    value={v}
-                    min={0}
-                    precision={2}
-                    style={{ width: 150 }}
-                    formatter={groupInt}
-                    parser={(x) => Number((x || '').replace(/,/g, ''))}
-                    onBlur={(e) => {
-                      const mv = Number((e.target.value || '').replace(/,/g, ''))
-                      if (!Number.isFinite(mv) || mv === v) return
-                      // 改市值时保持持有收益不变 → 成本随之调整
-                      const oldPnl = row.cost == null ? null : (row.market_value || 0) - row.cost
-                      const cost = oldPnl == null ? null : mv - oldPnl
-                      saveValue(row.fund_code, row.fund_name, mv, cost)
-                    }}
-                  />
-                ),
+                render: (_: number, row) => marketValueInput(row),
               },
               {
                 title: '持有收益（元）',
                 dataIndex: 'cost',
                 width: 160,
                 align: 'right',
-                render: (_: unknown, row) => {
-                  const pnl = row.cost == null ? null : round2((row.market_value || 0) - row.cost)
-                  const color = pnl == null ? undefined : pnl > 0 ? '#f5222d' : pnl < 0 ? '#52c41a' : undefined
-                  return (
-                    <InputNumber
-                      value={pnl}
-                      precision={2}
-                      style={{ width: 140, color }}
-                      placeholder="未填"
-                      formatter={groupInt}
-                      parser={(x) => Number((x || '').replace(/[,+]/g, ''))}
-                      onChange={(val) => {
-                        // 清空 → 成本置空（未提供）
-                        if (val === null || val === undefined) {
-                          if (row.cost != null) saveValue(row.fund_code, row.fund_name, row.market_value, null)
-                        }
-                      }}
-                      onBlur={(e) => {
-                        const raw = (e.target.value || '').replace(/[,+]/g, '')
-                        if (raw === '') return
-                        const newPnl = Number(raw)
-                        if (!Number.isFinite(newPnl) || newPnl === pnl) return
-                        // 改持有收益时保持市值不变 → 成本 = 市值 − 持有收益
-                        saveValue(row.fund_code, row.fund_name, row.market_value, (row.market_value || 0) - newPnl)
-                      }}
-                    />
-                  )
-                },
+                render: (_: unknown, row) => pnlInput(row),
               },
               {
                 title: '操作',
                 width: 70,
                 align: 'center',
                 render: (_, row) => (
-                  <Popconfirm title="删除该持仓？" onConfirm={() => removeHolding(row.fund_code)}>
-                    <Button size="small" type="text" danger icon={<DeleteOutlined />} />
+                  <Popconfirm
+                    title="删除该持仓？"
+                    overlayClassName="reconcile-mobile-popconfirm"
+                    onConfirm={() => removeHolding(row.fund_code)}
+                  >
+                    <Button size="small" type="text" danger icon={<DeleteOutlined />} aria-label={`删除 ${row.fund_name || row.fund_code} 快照`} />
                   </Popconfirm>
                 ),
               },
             ]}
-          />
+            />
+            <div className="snapshot-mobile-list" aria-label="快照持仓">
+              {items.map((row) => (
+                <section className="snapshot-mobile-item" key={row.fund_code}>
+                  <div className="snapshot-mobile-heading">
+                    <strong>{row.fund_name || row.fund_code}</strong>
+                    <span>{row.fund_code}</span>
+                  </div>
+                  <div className="snapshot-mobile-fields">
+                    <label>
+                      <span>快照市值（元）</span>
+                      {marketValueInput(row, true)}
+                    </label>
+                    <label>
+                      <span>持有收益（元）</span>
+                      {pnlInput(row, true)}
+                    </label>
+                  </div>
+                  <Popconfirm
+                    title="删除该持仓？"
+                    overlayClassName="reconcile-mobile-popconfirm"
+                    onConfirm={() => removeHolding(row.fund_code)}
+                  >
+                    <Button danger icon={<DeleteOutlined />} className="snapshot-mobile-delete">
+                      删除持仓
+                    </Button>
+                  </Popconfirm>
+                </section>
+              ))}
+            </div>
+          </>
         )}
       </Card>
 
       <Card size="small" title="批量粘贴导入">
-        <Space direction="vertical" style={{ width: '100%' }}>
+        <Space className="snapshot-import-form" direction="vertical" style={{ width: '100%' }}>
           <Alert
             type="info"
             showIcon
             message="每行一只基金，格式「名称或代码 市值 [持有收益]」，分隔符支持空格 / 逗号 / Tab。可直接从基金 App 复制（名称、市值、持有收益三列）粘贴；只看得到名称没有代码时按名称自动反查。持有收益可省略；成本=市值−持有收益，仅展示不参与调仓决策。导入为全量替换（覆盖现有持仓）。"
           />
+          <label htmlFor="snapshot-import-text">粘贴持仓数据</label>
           <TextArea
+            id="snapshot-import-text"
             rows={6}
             value={pasteText}
             onChange={(e) => setPasteText(e.target.value)}
             placeholder={'示例（名称 市值 持有收益）：\n中欧红利优享 50467 +3200\n易方达蓝筹 15000 -800\n000001 30000'}
           />
-          <Button type="primary" icon={<ImportOutlined />} loading={importing} onClick={doImport}>
+          <Button className="snapshot-import-button" type="primary" icon={<ImportOutlined />} loading={importing} onClick={doImport}>
             解析并导入
           </Button>
         </Space>

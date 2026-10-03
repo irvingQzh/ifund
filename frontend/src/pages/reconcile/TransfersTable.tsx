@@ -105,10 +105,11 @@ export default function TransfersTable({
 
   return (
     <Card
+      className="reconcile-card reconcile-transfers-card"
       size="small"
       title={`操作指南（${transfers.length} 笔调仓动作）`}
       extra={
-        <Space>
+        <Space wrap>
           <Popconfirm
             title="批量保存为交易记录？"
             description="把以上每笔转仓按最近交易日的单位净值落成真实交易记录（转仓=一卖一买）。会追加到「实际持仓管理」的交易记录中。"

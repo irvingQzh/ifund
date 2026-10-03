@@ -1,14 +1,15 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Alert, Button, Card, Descriptions, Divider, Drawer, Empty, Input, message, Modal, Popconfirm, Progress, Radio, Rate, Select, Space, Spin, Table, Tag, Typography } from 'antd'
+import { Alert, Button, Card, Descriptions, Divider, Drawer, Empty, Input, message, Modal, Pagination, Popconfirm, Progress, Radio, Rate, Select, Space, Spin, Table, Tag, Typography } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import { EditOutlined, ReloadOutlined, SaveOutlined, StopOutlined, ThunderboltOutlined, UndoOutlined } from '@ant-design/icons'
-import request from '../../api/request'
+import request, { redirectToLogin } from '../../api/request'
+import { ALLOW_AI_ANALYSIS, AUTH_TOKEN_KEY, apiUrl } from '../../config'
 import { useScreenData } from './hooks/useScreenData'
-import { buildFundColumns } from '../fund/components/fundColumns'
+import { buildFundColumns, num } from '../fund/components/fundColumns'
 import FundDetailModal from '../fund/components/FundDetailModal'
 import NavTrendModal from '../fund/components/NavTrendModal'
 import type { FundItem, QueryPreset } from '../fund/types'
-import { CONC_META, KIND_META, LUCK_META } from '../fund/aiMeta'
+import { CONC_META, KIND_META, LUCK_META, metaOf } from '../fund/aiMeta'
 
 const { TextArea } = Input
 const { Text } = Typography
@@ -30,6 +31,7 @@ export default function MirrorView({
   const [trend, setTrend] = useState<{ code: string; name: string } | null>(null)
   const [latestPag, setLatestPag] = useState({ current: 1, pageSize: 20 })
   const [mirrorPag, setMirrorPag] = useState({ current: 1, pageSize: 20 })
+  const [excludedPage, setExcludedPage] = useState(1)
 
   const mirrorItems = snapshot?.items ?? []
   const excludedSet = useMemo(() => new Set(excluded), [excluded])
@@ -85,6 +87,7 @@ export default function MirrorView({
 
   const latestCurrent = Math.min(latestPag.current, Math.max(1, Math.ceil(latest.length / latestPag.pageSize)))
   const mirrorCurrent = Math.min(mirrorPag.current, Math.max(1, Math.ceil(filteredEffectiveItems.length / mirrorPag.pageSize)))
+  const excludedCurrent = Math.min(excludedPage, Math.max(1, Math.ceil(filteredExcludedItems.length / 20)))
 
   const handleExclude = async (code: string) => {
     if (await addExcluded(code)) onMirrorSaved?.()
@@ -148,6 +151,7 @@ export default function MirrorView({
   }
 
   const handleAnalyze = async (code: string) => {
+    if (!ALLOW_AI_ANALYSIS) return
     setAnalyzingCode(code)
     setStreamText('')
     setStreamDone(false)
@@ -158,15 +162,18 @@ export default function MirrorView({
     abortRef.current = ctrl
 
     try {
-      const token = localStorage.getItem('token')
-      const resp = await fetch(`/api/fund/${code}/ai-analyze`, {
+      const token = localStorage.getItem(AUTH_TOKEN_KEY)
+      const resp = await fetch(apiUrl(`/fund/${encodeURIComponent(code)}/ai-analyze`), {
         method: 'POST',
         headers: {
-          Authorization: `Bearer ${token}`,
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
           Accept: 'text/event-stream',
         },
         signal: ctrl.signal,
       })
+
+      if (resp.status === 401) redirectToLogin()
+      if (!resp.ok) throw new Error(`AI analysis request failed: ${resp.status}`)
 
       const reader = resp.body?.getReader()
       const decoder = new TextDecoder()
@@ -332,22 +339,113 @@ export default function MirrorView({
       showNav: true,
       showAi: true,
     }),
-    aiAnalyzeCol,
+    ...(ALLOW_AI_ANALYSIS ? [aiAnalyzeCol] : []),
   ]
   const effectiveColumns: ColumnsType<FundItem> = [
     statusCol((code) => (!latestCodes.has(code) ? <Tag color="red">已剔除</Tag> : null)),
     ...buildFundColumns({ onOpenDetail: setDetailCode, showNav: false, showAi: true }),
-    aiAnalyzeCol,
+    ...(ALLOW_AI_ANALYSIS ? [aiAnalyzeCol] : []),
     excludeActionCol,
   ]
   const filteredColumns: ColumnsType<FundItem> = [
     ...buildFundColumns({ onOpenDetail: setDetailCode, showNav: false, showAi: true }),
-    aiAnalyzeCol,
+    ...(ALLOW_AI_ANALYSIS ? [aiAnalyzeCol] : []),
     restoreActionCol,
   ]
 
+  const mobileFundList = (items: FundItem[], kind: 'latest' | 'mirror' | 'excluded') => (
+    <div className="qfund-mirror-mobile-list">
+      {loading && kind === 'latest' ? (
+        <div className="qfund-mirror-mobile-loading"><Spin tip="正在筛选基金…" /></div>
+      ) : items.length === 0 ? (
+        <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="当前没有符合条件的基金" />
+      ) : items.map((fund) => (
+        <article className="qfund-mirror-mobile-item" key={fund.code}>
+          <div className="qfund-mirror-mobile-heading">
+            <div className="qfund-mirror-mobile-identity">
+              <strong>{fund.name}</strong>
+              <span>{fund.code} · {fund.type || fund.fund_type || '基金'}</span>
+            </div>
+            {kind === 'latest' && snapshot && !mirrorCodes.has(fund.code) && <Tag color="green">新增</Tag>}
+            {kind === 'mirror' && !latestCodes.has(fund.code) && <Tag color="red">已剔除</Tag>}
+          </div>
+          <dl className="qfund-mirror-mobile-metrics">
+            <div><dt>今年收益</dt><dd>{num(fund.return_ytd)}{fund.return_ytd != null ? '%' : ''}</dd></div>
+            <div><dt>夏普 3 年</dt><dd>{num(fund.sharpe_3y)}</dd></div>
+            <div><dt>股票仓位</dt><dd>{num(fund.position_stock)}{fund.position_stock != null ? '%' : ''}</dd></div>
+          </dl>
+          <div className="qfund-mirror-mobile-ai">
+            {!fund.ai ? (
+              <span>AI 未分析</span>
+            ) : (
+              <>
+                {fund.ai.rating != null && <span>AI {'★'.repeat(Math.max(0, Math.min(3, Number(fund.ai.rating)))) || '0 星'}</span>}
+                {fund.ai.skill_score != null && <span>实力分 {fund.ai.skill_score}</span>}
+                {metaOf(LUCK_META, fund.ai.luck_verdict) && (
+                  <Tag color={metaOf(LUCK_META, fund.ai.luck_verdict)?.color}>
+                    {metaOf(LUCK_META, fund.ai.luck_verdict)?.label}
+                  </Tag>
+                )}
+                {metaOf(CONC_META, fund.ai.concentration) && (
+                  <Tag color={metaOf(CONC_META, fund.ai.concentration)?.color}>
+                    {metaOf(CONC_META, fund.ai.concentration)?.label}
+                  </Tag>
+                )}
+                {metaOf(KIND_META, fund.ai.fund_kind) && (
+                  <Tag color={metaOf(KIND_META, fund.ai.fund_kind)?.color}>
+                    {metaOf(KIND_META, fund.ai.fund_kind)?.label}
+                  </Tag>
+                )}
+                {fund.ai.recommend === 0 && <Tag color="red">不建议</Tag>}
+              </>
+            )}
+          </div>
+          {(fund.fund_manager || fund.ai?.manager || fund.ai?.verdict) && (
+            <p className="qfund-mirror-mobile-context">
+              {fund.fund_manager || fund.ai?.manager ? `经理：${fund.fund_manager || fund.ai?.manager}` : ''}
+              {fund.ai?.verdict
+                ? `${fund.fund_manager || fund.ai?.manager ? ' · ' : ''}AI：${fund.ai.verdict}`
+                : ''}
+            </p>
+          )}
+          <div className="qfund-mirror-mobile-actions">
+            <Button type="link" onClick={() => setDetailCode(fund.code)}>查看详情</Button>
+            {kind === 'latest' && (
+              <Button type="link" onClick={() => setTrend({ code: fund.code, name: fund.name })}>净值走势</Button>
+            )}
+            {ALLOW_AI_ANALYSIS && (
+              <Popconfirm
+                title="AI 定性分析"
+                description="将调用 AI 流式分析该基金，约需 30-60 秒"
+                okText="开始分析"
+                cancelText="取消"
+                onConfirm={() => handleAnalyze(fund.code)}
+              >
+                <Button type="link" loading={analyzingCode === fund.code}>AI 分析</Button>
+              </Popconfirm>
+            )}
+            {kind === 'mirror' && (
+              <Popconfirm
+                title="移入过滤名单？"
+                description="该基金将从镜像剔除，聚类/仓位不再纳入"
+                okText="移入"
+                cancelText="取消"
+                onConfirm={() => handleExclude(fund.code)}
+              >
+                <Button type="link" danger>移入过滤</Button>
+              </Popconfirm>
+            )}
+            {kind === 'excluded' && (
+              <Button type="link" onClick={() => handleRestore(fund.code)}>移回镜像</Button>
+            )}
+          </div>
+        </article>
+      ))}
+    </div>
+  )
+
   const aiFilterBar = (
-    <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 12, marginBottom: 12 }}>
+    <div className="qfund-mirror-ai-filter" style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 12, marginBottom: 12 }}>
       <span style={{ fontSize: 13, opacity: 0.65 }}>AI筛选：</span>
       <Radio.Group
         size="small"
@@ -400,8 +498,8 @@ export default function MirrorView({
   }
 
   return (
-    <Space direction="vertical" className="w-full" style={{ width: '100%' }} size="middle">
-      <Space wrap>
+    <Space direction="vertical" className="qfund-mirror-view w-full" style={{ width: '100%' }} size="middle">
+      <Space wrap className="qfund-mirror-toolbar">
         <Button icon={<ReloadOutlined />} onClick={refresh} loading={loading}>
           重新筛选
         </Button>
@@ -416,9 +514,13 @@ export default function MirrorView({
         >
           {snapshot ? '更新镜像' : '存为镜像'}
         </Button>
-        <Button icon={<EditOutlined />} onClick={() => setPromptDrawerOpen(true)}>
-          AI提示词
-        </Button>
+        {ALLOW_AI_ANALYSIS ? (
+          <Button icon={<EditOutlined />} onClick={() => setPromptDrawerOpen(true)}>
+            AI提示词
+          </Button>
+        ) : (
+          <Text type="secondary">当前部署未启用在线 AI 分析，已有分析结果仍可查看。</Text>
+        )}
       </Space>
 
       {/* 流式分析弹窗 */}
@@ -457,7 +559,7 @@ export default function MirrorView({
 
             {/* 评分行 */}
             <Space direction="vertical" style={{ width: '100%' }} size={8}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 12 }}>
                 <span style={{ fontSize: 13, opacity: 0.65, minWidth: 56 }}>综合评级</span>
                 <Rate disabled allowHalf value={ratingVal} style={{ fontSize: 16 }} />
                 {recommend === 1 && <Tag color="green" style={{ margin: 0 }}>推荐</Tag>}
@@ -478,30 +580,30 @@ export default function MirrorView({
 
             {/* 核心标签 */}
             <Space wrap size={[8, 8]}>
-              {r.luck_verdict && (
+              {Boolean(r.luck_verdict) && (
                 <Tag color={luckColor[String(r.luck_verdict)] ?? 'default'}>
-                  运气判断：{luckLabel[String(r.luck_verdict)] ?? r.luck_verdict}
+                  运气判断：{luckLabel[String(r.luck_verdict)] ?? String(r.luck_verdict)}
                 </Tag>
               )}
-              {r.concentration && (
+              {Boolean(r.concentration) && (
                 <Tag color={concColor[String(r.concentration)] ?? 'default'}>
-                  集中度：{concLabel[String(r.concentration)] ?? r.concentration}
+                  集中度：{concLabel[String(r.concentration)] ?? String(r.concentration)}
                 </Tag>
               )}
-              {r.fund_kind && (
+              {Boolean(r.fund_kind) && (
                 <Tag color={kindColor[String(r.fund_kind)] ?? 'default'}>
-                  基金属性：{kindLabel[String(r.fund_kind)] ?? r.fund_kind}
+                  基金属性：{kindLabel[String(r.fund_kind)] ?? String(r.fund_kind)}
                 </Tag>
               )}
-              {r.confidence && <Tag>置信度：{r.confidence}</Tag>}
-              {r.scale_risk && (
+              {Boolean(r.confidence) && <Tag>置信度：{String(r.confidence)}</Tag>}
+              {Boolean(r.scale_risk) && (
                 <Tag color={scaleColor[String(r.scale_risk)] ?? 'default'}>
-                  规模：{scaleLabel[String(r.scale_risk)] ?? r.scale_risk}
+                  规模：{scaleLabel[String(r.scale_risk)] ?? String(r.scale_risk)}
                 </Tag>
               )}
-              {r.style_stability && (
+              {Boolean(r.style_stability) && (
                 <Tag color={styleColor[String(r.style_stability)] ?? 'default'}>
-                  风格：{styleLabel[String(r.style_stability)] ?? r.style_stability}
+                  风格：{styleLabel[String(r.style_stability)] ?? String(r.style_stability)}
                 </Tag>
               )}
             </Space>
@@ -517,8 +619,8 @@ export default function MirrorView({
             <Divider style={{ margin: '12px 0' }} />
 
             {/* 经理信息 */}
-            <Descriptions column={2} size="small" style={{ fontSize: 13 }} labelStyle={{ opacity: 0.65 }}>
-              {r.manager && <Descriptions.Item label="经理">{String(r.manager)}</Descriptions.Item>}
+            <Descriptions column={{ xs: 1, sm: 2 }} size="small" style={{ fontSize: 13 }} labelStyle={{ opacity: 0.65 }}>
+              {Boolean(r.manager) && <Descriptions.Item label="经理">{String(r.manager)}</Descriptions.Item>}
               {r.tenure_years != null && <Descriptions.Item label="任职年限">{Number(r.tenure_years).toFixed(1)} 年</Descriptions.Item>}
               {r.is_original != null && <Descriptions.Item label="是否原装">{Number(r.is_original) ? '是' : '否'}</Descriptions.Item>}
               {r.is_comanaged != null && <Descriptions.Item label="是否共管">{Number(r.is_comanaged) ? '是' : '否'}</Descriptions.Item>}
@@ -528,25 +630,25 @@ export default function MirrorView({
 
             {/* 详细理由 */}
             <Space direction="vertical" style={{ width: '100%' }} size={10}>
-              {r.skill_reason && (
+              {Boolean(r.skill_reason) && (
                 <div>
                   <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 4, opacity: 0.85 }}>归因理由</div>
                   <div style={{ fontSize: 13, lineHeight: 1.6, opacity: 0.8 }}>{String(r.skill_reason)}</div>
                 </div>
               )}
-              {r.concentration_reason && (
+              {Boolean(r.concentration_reason) && (
                 <div>
                   <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 4, opacity: 0.85 }}>集中度分析</div>
                   <div style={{ fontSize: 13, lineHeight: 1.6, opacity: 0.8 }}>{String(r.concentration_reason)}</div>
                 </div>
               )}
-              {r.hard_thesis && (
+              {Boolean(r.hard_thesis) && (
                 <div>
                   <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 4, opacity: 0.85 }}>硬实力逻辑</div>
                   <div style={{ fontSize: 13, lineHeight: 1.6, opacity: 0.8 }}>{String(r.hard_thesis)}</div>
                 </div>
               )}
-              {r.turnover_note && (
+              {Boolean(r.turnover_note) && (
                 <div>
                   <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 4, opacity: 0.85 }}>换手备注</div>
                   <div style={{ fontSize: 13, lineHeight: 1.6, opacity: 0.8 }}>{String(r.turnover_note)}</div>
@@ -554,7 +656,7 @@ export default function MirrorView({
               )}
             </Space>
 
-            {r.data_basis && (
+            {Boolean(r.data_basis) && (
               <>
                 <Divider style={{ margin: '12px 0' }} />
                 <div style={{ fontSize: 11, opacity: 0.45 }}>
@@ -586,14 +688,16 @@ export default function MirrorView({
 
       <Card
         size="small"
+        className="qfund-mirror-section"
         title={
-          <Space>
+          <Space wrap>
             <span>最新筛选基金（{latest.length}）</span>
             {newCount > 0 && <Tag color="green">新增 {newCount}</Tag>}
           </Space>
         }
       >
         <Table<FundItem>
+          className="qfund-mirror-table"
           rowKey="code"
           size="small"
           loading={loading}
@@ -608,12 +712,24 @@ export default function MirrorView({
             onChange: (current, pageSize) => setLatestPag({ current, pageSize }),
           }}
         />
+        {mobileFundList(latest.slice((latestCurrent - 1) * latestPag.pageSize, latestCurrent * latestPag.pageSize), 'latest')}
+        {latest.length > latestPag.pageSize && (
+          <Pagination
+            className="qfund-mirror-mobile-pager"
+            simple
+            current={latestCurrent}
+            pageSize={latestPag.pageSize}
+            total={latest.length}
+            onChange={(current) => setLatestPag((prev) => ({ ...prev, current }))}
+          />
+        )}
       </Card>
 
       <Card
         size="small"
+        className="qfund-mirror-section"
         title={
-          <Space>
+          <Space wrap>
             <span>镜像基金（{filteredEffectiveItems.length}/{effectiveItems.length}）</span>
             {droppedCount > 0 && <Tag color="red">已剔除 {droppedCount}</Tag>}
             {snapshot && <span className="text-xs text-gray-400">镜像时间：{snapshot.created_at}</span>}
@@ -624,6 +740,7 @@ export default function MirrorView({
           <>
             {aiFilterBar}
             <Table<FundItem>
+              className="qfund-mirror-table"
               rowKey="code"
               size="small"
               dataSource={filteredEffectiveItems}
@@ -637,6 +754,20 @@ export default function MirrorView({
                 onChange: (current, pageSize) => setMirrorPag({ current, pageSize }),
               }}
             />
+            {mobileFundList(
+              filteredEffectiveItems.slice((mirrorCurrent - 1) * mirrorPag.pageSize, mirrorCurrent * mirrorPag.pageSize),
+              'mirror',
+            )}
+            {filteredEffectiveItems.length > mirrorPag.pageSize && (
+              <Pagination
+                className="qfund-mirror-mobile-pager"
+                simple
+                current={mirrorCurrent}
+                pageSize={mirrorPag.pageSize}
+                total={filteredEffectiveItems.length}
+                onChange={(current) => setMirrorPag((prev) => ({ ...prev, current }))}
+              />
+            )}
           </>
         ) : (
           <Empty
@@ -649,8 +780,9 @@ export default function MirrorView({
       {snapshot && (
         <Card
           size="small"
+          className="qfund-mirror-section"
           title={
-            <Space>
+            <Space wrap>
               <StopOutlined style={{ color: '#ff4d4f' }} />
               <span>过滤名单（{filteredExcludedItems.length}/{filteredItems.length}）</span>
               <span className="text-xs text-gray-400">
@@ -663,6 +795,7 @@ export default function MirrorView({
             <>
               {aiFilterBar}
               <Table<FundItem>
+                className="qfund-mirror-table"
                 rowKey="code"
                 size="small"
                 dataSource={filteredExcludedItems}
@@ -670,6 +803,17 @@ export default function MirrorView({
                 scroll={{ x: 2320 }}
                 pagination={false}
               />
+              {mobileFundList(filteredExcludedItems.slice((excludedCurrent - 1) * 20, excludedCurrent * 20), 'excluded')}
+              {filteredExcludedItems.length > 20 && (
+                <Pagination
+                  className="qfund-mirror-mobile-pager"
+                  simple
+                  current={excludedCurrent}
+                  pageSize={20}
+                  total={filteredExcludedItems.length}
+                  onChange={setExcludedPage}
+                />
+              )}
             </>
           ) : (
             <Empty
@@ -690,10 +834,11 @@ export default function MirrorView({
 
       {/* 提示词编辑抽屉 */}
       <Drawer
+        className="qfund-mirror-prompt-drawer"
         title="AI 分析提示词"
         open={promptDrawerOpen}
         onClose={() => setPromptDrawerOpen(false)}
-        width={640}
+        width="min(640px, 100vw)"
         extra={
           <Space>
             <Popconfirm

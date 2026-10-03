@@ -1,0 +1,126 @@
+.qfund-cluster-fund-row {
+  display: flex;
+  gap: 12px;
+  min-width: 0;
+}
+
+.qfund-cluster-fund-info {
+  width: 180px;
+  flex-shrink: 0;
+  overflow-wrap: anywhere;
+}
+
+.qfund-cluster-fund-holdings {
+  flex: 1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-content: flex-start;
+  min-width: 0;
+}
+
+.qfund-capital-bars,
+.qfund-industry-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.qfund-capital-row,
+.qfund-industry-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.qfund-capital-name,
+.qfund-industry-name {
+  flex-shrink: 0;
+  font-size: 12px;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+.qfund-capital-name { width: 150px; }
+.qfund-industry-name { width: 140px; }
+
+.qfund-capital-track,
+.qfund-industry-track {
+  flex: 1;
+  min-width: 0;
+  height: 14px;
+  border-radius: 3px;
+}
+
+.qfund-capital-track { background: rgba(140, 140, 140, 0.18); }
+.qfund-industry-track { background: rgba(140, 140, 140, 0.18); }
+
+.qfund-capital-value,
+.qfund-industry-value {
+  flex-shrink: 0;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.qfund-capital-value { width: 130px; }
+.qfund-industry-value { width: 48px; }
+
+@media (max-width: 767px) {
+  .qfund-cluster-view,
+  .qfund-cluster-view .ant-collapse-content-box {
+    min-width: 0;
+  }
+
+  .qfund-cluster-view > .ant-space .ant-btn,
+  .qfund-cluster-view .ant-collapse-header {
+    min-height: 44px;
+  }
+
+  .qfund-cluster-fund-row {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .qfund-cluster-fund-info {
+    width: 100%;
+  }
+
+  .qfund-cluster-fund-holdings {
+    width: 100%;
+  }
+
+  .qfund-cluster-fund-holdings > span {
+    max-width: 100%;
+    flex-wrap: wrap;
+    overflow-wrap: anywhere;
+  }
+
+  .qfund-capital-row,
+  .qfund-industry-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 6px 8px;
+    margin-bottom: 8px;
+  }
+
+  .qfund-capital-name,
+  .qfund-industry-name {
+    width: auto;
+    text-align: left;
+  }
+
+  .qfund-capital-value,
+  .qfund-industry-value {
+    width: auto;
+    text-align: right;
+  }
+
+  .qfund-capital-track,
+  .qfund-industry-track {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    width: 100%;
+  }
+}

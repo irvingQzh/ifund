@@ -1,0 +1,299 @@
+/* The desktop tables stay intact; narrow screens get the same records as touch-friendly lists. */
+.snapshot-mobile-list,
+.txn-mobile-list {
+  display: none;
+}
+
+.txn-panel-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.txn-form-label {
+  display: block;
+  color: rgba(255, 255, 255, 0.68);
+}
+
+@media (max-width: 767px) {
+  .snapshot-editor,
+  .txn-panel {
+    min-width: 0;
+  }
+
+  .snapshot-editor .ant-card-head,
+  .txn-panel .ant-card-head {
+    padding-inline: 12px;
+  }
+
+  .snapshot-editor .ant-card-head-wrapper,
+  .txn-panel .ant-card-head-wrapper {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 8px;
+    padding-block: 12px;
+  }
+
+  .snapshot-editor .ant-card-head-title,
+  .txn-panel .ant-card-head-title {
+    overflow: visible;
+    white-space: normal;
+    line-height: 1.45;
+  }
+
+  .snapshot-editor .ant-card-extra,
+  .txn-panel .ant-card-extra {
+    margin-inline-start: 0;
+  }
+
+  .snapshot-editor .ant-card-body,
+  .txn-panel .ant-card-body {
+    padding: 12px;
+    min-width: 0;
+  }
+
+  .snapshot-editor .ant-alert,
+  .txn-panel .ant-alert {
+    overflow-wrap: anywhere;
+  }
+
+  .snapshot-desktop-table,
+  .txn-desktop-table {
+    display: none;
+  }
+
+  .snapshot-mobile-list,
+  .txn-mobile-list {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  .snapshot-mobile-item,
+  .txn-mobile-item {
+    min-width: 0;
+    padding-block: 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.16);
+    overflow-wrap: anywhere;
+  }
+
+  .snapshot-mobile-item:last-child,
+  .txn-mobile-item:last-child {
+    border-bottom: 0;
+  }
+
+  .snapshot-mobile-heading {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 4px 8px;
+    margin-bottom: 16px;
+  }
+
+  .snapshot-mobile-heading strong {
+    font-size: 16px;
+    font-weight: 600;
+  }
+
+  .snapshot-mobile-heading span {
+    color: rgba(255, 255, 255, 0.68);
+    font-size: 13px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .snapshot-mobile-fields {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
+
+  .snapshot-mobile-fields label {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+    font-size: 14px;
+  }
+
+  .snapshot-mobile-fields .ant-input-number,
+  .snapshot-mobile-fields .ant-input-number-input {
+    min-height: 44px;
+    font-size: 16px;
+  }
+
+  .snapshot-mobile-delete {
+    width: 100%;
+    height: 44px;
+    margin-top: 16px;
+    touch-action: manipulation;
+  }
+
+  .snapshot-editor .ant-card-extra .ant-btn,
+  .snapshot-import-button {
+    width: 100%;
+    min-height: 44px;
+    touch-action: manipulation;
+  }
+
+  .snapshot-editor textarea.ant-input {
+    width: 100%;
+    min-height: 156px;
+    font-size: 16px;
+    line-height: 1.5;
+  }
+
+  .snapshot-import-form .ant-space-item,
+  .txn-modal .ant-space-item {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .txn-panel-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .txn-panel-actions > :first-child {
+    grid-column: 1 / -1;
+  }
+
+  .txn-panel-actions .ant-btn {
+    width: 100%;
+    min-height: 44px;
+    touch-action: manipulation;
+  }
+
+  .txn-mobile-select-all,
+  .txn-mobile-footer .ant-checkbox-wrapper {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding-inline: 8px;
+    touch-action: manipulation;
+  }
+
+  .txn-mobile-heading {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 8px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .txn-mobile-heading strong {
+    margin-inline-start: auto;
+    font-size: 16px;
+    white-space: nowrap;
+  }
+
+  .txn-mobile-item .ant-tag {
+    margin-inline-end: 0;
+  }
+
+  .txn-mobile-funds {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-width: 0;
+    margin-block: 16px;
+    line-height: 1.5;
+  }
+
+  .txn-mobile-funds > div {
+    min-width: 0;
+  }
+
+  .txn-mobile-funds small,
+  .txn-mobile-label {
+    display: block;
+    color: rgba(255, 255, 255, 0.68);
+    font-size: 13px;
+  }
+
+  .txn-mobile-funds small {
+    margin-top: 4px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .txn-mobile-footer {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+  }
+
+  .txn-mobile-footer .ant-checkbox-wrapper {
+    grid-column: 1 / -1;
+  }
+
+  .txn-mobile-footer .ant-btn {
+    width: 100%;
+    min-height: 44px;
+    touch-action: manipulation;
+  }
+
+  .txn-modal {
+    width: calc(100vw - 24px) !important;
+    max-width: 480px;
+    margin: 12px auto;
+    padding-bottom: env(safe-area-inset-bottom);
+    top: 0;
+  }
+
+  .txn-modal .ant-modal-content {
+    max-height: calc(100dvh - 24px - env(safe-area-inset-bottom));
+    overflow-y: auto;
+  }
+
+  .txn-modal .ant-modal-body .ant-select-selector,
+  .txn-modal .ant-modal-body .ant-picker,
+  .txn-modal .ant-modal-body .ant-input-number {
+    min-height: 44px;
+  }
+
+  .txn-modal .ant-modal-body .ant-select-selection-search-input,
+  .txn-modal .ant-modal-body .ant-picker-input > input,
+  .txn-modal .ant-modal-body .ant-input-number-input {
+    height: 42px;
+    font-size: 16px;
+  }
+
+  .txn-modal .ant-segmented-item-label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    padding-inline: 4px;
+    white-space: normal;
+  }
+
+  .txn-modal .ant-modal-footer {
+    display: flex;
+    gap: 8px;
+  }
+
+  .txn-modal .ant-modal-footer .ant-btn {
+    flex: 1;
+    min-height: 44px;
+    margin-inline-start: 0;
+  }
+
+  .reconcile-mobile-popconfirm .ant-popover-inner {
+    max-width: calc(100vw - 24px);
+    overflow-wrap: anywhere;
+  }
+
+  .reconcile-mobile-popconfirm .ant-popconfirm-buttons {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+  }
+
+  .reconcile-mobile-popconfirm .ant-popconfirm-buttons .ant-btn {
+    flex: 1;
+    min-height: 44px;
+    margin-inline-start: 0;
+  }
+}

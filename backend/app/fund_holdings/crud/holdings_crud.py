@@ -1,7 +1,9 @@
-"""持仓数据访问：按基准交易日缓存判定 + 按基金全量替换。"""
+"""持仓数据访问：按基准交易日缓存判定 + 按实际返回的报告期原子更新。"""
 from __future__ import annotations
 
 import datetime
+import math
+import re
 
 from app import db as database
 from app.trade_calendar.crud import calendar_crud
@@ -30,10 +32,29 @@ def is_fresh(code: str) -> bool:
 
 
 def upsert(code: str, rows: list[dict]) -> None:
-    """按基金全量替换：delete by fund_code → batch_insert。"""
-    database.delete("fund_holdings", {"fund_code": code})
-    if rows:
-        database.batch_insert("fund_holdings", rows)
+    """原子替换已返回的季度/类型；不把缺失报告期或空响应解释为清仓。"""
+    if not rows:
+        raise ValueError(f"{code} 持仓响应为空，未更新已有数据")
+    seen = set()
+    for row in rows:
+        if row.get("fund_code") != code:
+            raise ValueError("持仓数据的基金代码与更新目标不一致")
+        if not re.fullmatch(r"\d{4}Q[1-4]", row.get("quarter", "")):
+            raise ValueError(f"{code} 持仓数据缺少有效报告期")
+        if row.get("holding_type") not in ("stock", "bond"):
+            raise ValueError(f"{code} 持仓类型无效")
+        for field in ("asset_code", "asset_name"):
+            value = row.get(field)
+            if not isinstance(value, str) or not value.strip() or value.strip().lower() in ("nan", "none", "--"):
+                raise ValueError(f"{code} 持仓字段 {field} 无效")
+        ratio = row.get("hold_ratio")
+        if not isinstance(ratio, (int, float)) or not math.isfinite(ratio) or ratio < 0:
+            raise ValueError(f"{code} 持仓占比无效")
+        key = (row["quarter"], row["holding_type"], row["asset_code"])
+        if key in seen:
+            raise ValueError(f"{code} 存在重复的持仓记录")
+        seen.add(key)
+    database.replace_partitions("fund_holdings", rows, ("fund_code", "quarter", "holding_type"))
 
 
 def latest_quarter(code: str, holding_type: str = "stock") -> str | None:

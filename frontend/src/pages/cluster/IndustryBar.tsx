@@ -6,13 +6,13 @@ export default function IndustryBar({ items }: { items: ClusterIndustry[] }) {
   if (!items.length) return null
   const max = Math.max(...items.map((i) => i.ratio), 1)
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+    <div className="qfund-industry-bars">
       {items.map((it) => (
-        <div key={it.label} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ width: 140, fontSize: 12, textAlign: 'right' }} title={it.label}>
+        <div className="qfund-industry-row" key={it.label}>
+          <span className="qfund-industry-name" title={it.label}>
             {it.label}
           </span>
-          <div style={{ flex: 1, background: '#f0f0f0', borderRadius: 3, height: 14 }}>
+          <div className="qfund-industry-track">
             <Tooltip title={`平均持仓 ${it.ratio.toFixed(2)}%`}>
               <div
                 style={{
@@ -24,7 +24,7 @@ export default function IndustryBar({ items }: { items: ClusterIndustry[] }) {
               />
             </Tooltip>
           </div>
-          <span style={{ width: 48, fontSize: 12 }}>{it.ratio.toFixed(2)}%</span>
+          <span className="qfund-industry-value">{it.ratio.toFixed(2)}%</span>
         </div>
       ))}
     </div>

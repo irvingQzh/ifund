@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
-  AutoComplete, Button, Card, DatePicker, Empty, InputNumber, Modal, Popconfirm,
+  AutoComplete, Button, Card, Checkbox, DatePicker, Empty, InputNumber, Modal, Popconfirm,
   Segmented, Space, Table, Tag, Typography, message,
 } from 'antd'
 import { DeleteOutlined, EditOutlined, PlusOutlined, ReloadOutlined } from '@ant-design/icons'
 import dayjs, { type Dayjs } from 'dayjs'
 import request from '../../api/request'
 import type { ComputedHolding, Txn } from './types'
+import './reconcile-mobile.css'
 
 type Kind = 'buy' | 'sell' | 'transfer'
 
@@ -47,6 +48,7 @@ export default function TxnPanel({
   const [editingId, setEditingId] = useState<number | null>(null)               // 编辑单条买/卖
   const [editingTransfer, setEditingTransfer] = useState<{ sellId: number; buyId: number } | null>(null)  // 编辑转仓两条
   const [selectedKeys, setSelectedKeys] = useState<string[]>([])               // 批量删除选中（展示行 key）
+  const [deleting, setDeleting] = useState(false)
   // 表单
   const [kind, setKind] = useState<Kind>('buy')
   const [fund, setFund] = useState('')        // 买入/卖出 的基金（名称或代码）
@@ -70,7 +72,7 @@ export default function TxnPanel({
     }
   }, [portfolioId])
 
-  useEffect(() => { load() }, [load])
+  useEffect(() => { setSelectedKeys([]); load() }, [load])
 
   // 把底层交易聚合成展示行：转仓的卖出 + 买入合并为一行。
   const rows = useMemo<Row[]>(() => {
@@ -102,6 +104,7 @@ export default function TxnPanel({
     }
     return m
   }, [rows])
+  const selectedVisibleKeys = selectedKeys.filter((key) => keyToTxnIds.has(key))
 
   const heldOptions = held.map((h) => ({ value: h.fund_name || h.fund_code }))
 
@@ -197,9 +200,10 @@ export default function TxnPanel({
   }
 
   const bulkDelete = async () => {
-    if (!portfolioId || selectedKeys.length === 0) return
-    const ids = selectedKeys.flatMap((k) => keyToTxnIds.get(k) ?? [])
+    if (!portfolioId || selectedVisibleKeys.length === 0 || deleting || loading) return
+    const ids = selectedVisibleKeys.flatMap((k) => keyToTxnIds.get(k) ?? [])
     if (ids.length === 0) return
+    setDeleting(true)
     try {
       const { data } = await request.post<{ count: number }>('/reconcile/txns/bulk-delete', {
         portfolio_id: portfolioId, ids,
@@ -210,16 +214,24 @@ export default function TxnPanel({
       onChanged?.()
     } catch {
       message.error('批量删除失败')
+    } finally {
+      setDeleting(false)
     }
   }
+
+  const editRow = (r: Row) => r.rowType === 'single' ? openEdit(r.txn) : openEditTransfer(r)
+  const rowLabel = (r: Row) => r.rowType === 'single'
+    ? `${r.txn.fund_name || r.txn.fund_code} ${r.txn.txn_type === 'buy' ? '买入' : '卖出'}`
+    : `${r.sell?.fund_name || r.sell?.fund_code || '未知基金'} 转至 ${r.buy?.fund_name || r.buy?.fund_code || '未知基金'}`
 
   const fundField = (() => {
     if (kind === 'transfer') {
       return (
         <>
           <div>
-            <Typography.Text type="secondary">转出基金（从已持有里卖）</Typography.Text>
+            <label className="txn-form-label" htmlFor="txn-from-fund">转出基金（从已持有里卖）</label>
             <AutoComplete
+              id="txn-from-fund"
               style={{ width: '100%', marginTop: 4 }}
               options={heldOptions}
               value={fromFund}
@@ -229,8 +241,9 @@ export default function TxnPanel({
             />
           </div>
           <div>
-            <Typography.Text type="secondary">转入基金（买入/加仓的目标）</Typography.Text>
+            <label className="txn-form-label" htmlFor="txn-to-fund">转入基金（买入/加仓的目标）</label>
             <AutoComplete
+              id="txn-to-fund"
               style={{ width: '100%', marginTop: 4 }}
               options={heldOptions}
               value={toFund}
@@ -244,8 +257,11 @@ export default function TxnPanel({
     }
     return (
       <div>
-        <Typography.Text type="secondary">{kind === 'buy' ? '买入/加仓基金' : '卖出/减仓基金'}</Typography.Text>
+        <label className="txn-form-label" htmlFor="txn-fund">
+          {kind === 'buy' ? '买入/加仓基金' : '卖出/减仓基金'}
+        </label>
         <AutoComplete
+          id="txn-fund"
           style={{ width: '100%', marginTop: 4 }}
           options={heldOptions}
           value={fund}
@@ -261,40 +277,45 @@ export default function TxnPanel({
 
   return (
     <Card
+      className="txn-panel"
       size="small"
       title={`交易记录（${rows.length} 笔）`}
       extra={
-        <Space>
+        <div className="txn-panel-actions">
           <Button size="small" type="primary" icon={<PlusOutlined />} onClick={openModal}>
             记一笔
           </Button>
           <Popconfirm
-            title={`删除选中的 ${selectedKeys.length} 笔交易？`}
+            title={`删除选中的 ${selectedVisibleKeys.length} 笔交易？`}
             description="转仓的卖出 + 买入两条会一并删除。"
+            overlayClassName="reconcile-mobile-popconfirm"
             onConfirm={bulkDelete}
-            disabled={selectedKeys.length === 0}
+            disabled={selectedVisibleKeys.length === 0 || deleting || loading}
           >
-            <Button size="small" danger icon={<DeleteOutlined />} disabled={selectedKeys.length === 0}>
-              批量删除{selectedKeys.length > 0 ? `（${selectedKeys.length}）` : ''}
+            <Button size="small" danger icon={<DeleteOutlined />} loading={deleting} disabled={selectedVisibleKeys.length === 0 || loading}>
+              批量删除{selectedVisibleKeys.length > 0 ? `（${selectedVisibleKeys.length}）` : ''}
             </Button>
           </Popconfirm>
-          <Button size="small" icon={<ReloadOutlined />} onClick={load}>
+          <Button size="small" icon={<ReloadOutlined />} loading={loading} onClick={load}>
             刷新
           </Button>
-        </Space>
+        </div>
       }
     >
       {rows.length === 0 ? (
         <Empty description="暂无交易记录。首次建仓用上方「初始化快照」；之后的加/减/转仓点「记一笔」。" />
       ) : (
+        <>
         <Table<Row>
+          className="txn-desktop-table"
           size="small"
           rowKey="key"
           loading={loading}
           dataSource={rows}
           pagination={false}
+          scroll={{ x: 1080 }}
           rowSelection={{
-            selectedRowKeys: selectedKeys,
+            selectedRowKeys: selectedVisibleKeys,
             onChange: (keys) => setSelectedKeys(keys as string[]),
           }}
           columns={[
@@ -351,22 +372,89 @@ export default function TxnPanel({
                 <Space size={0}>
                   <Button
                     size="small" type="text" icon={<EditOutlined />}
-                    onClick={() => r.rowType === 'single' ? openEdit(r.txn) : openEditTransfer(r)}
+                    aria-label={`编辑 ${rowLabel(r)}`}
+                    onClick={() => editRow(r)}
                   />
                   <Popconfirm
                     title={r.rowType === 'transfer' ? '删除该转仓（卖出 + 买入两条一并删除）？' : '删除该交易？'}
+                    overlayClassName="reconcile-mobile-popconfirm"
                     onConfirm={() => removeRow(r.key)}
                   >
-                    <Button size="small" type="text" danger icon={<DeleteOutlined />} />
+                    <Button size="small" type="text" danger icon={<DeleteOutlined />} aria-label={`删除 ${rowLabel(r)}`} />
                   </Popconfirm>
                 </Space>
               ),
             },
           ]}
         />
+        <div className="txn-mobile-list" aria-label="交易记录">
+          <Checkbox
+            className="txn-mobile-select-all"
+            checked={selectedVisibleKeys.length === rows.length}
+            indeterminate={selectedVisibleKeys.length > 0 && selectedVisibleKeys.length < rows.length}
+            onChange={(e) => setSelectedKeys(e.target.checked ? rows.map((r) => r.key) : [])}
+          >
+            全选交易
+          </Checkbox>
+          {rows.map((r) => {
+            const transfer = r.rowType === 'transfer'
+            const amount = transfer ? r.amount : r.txn.amount
+            const tradeDate = transfer ? r.trade_date : r.txn.trade_date
+            return (
+              <section className="txn-mobile-item" key={r.key} aria-label={`${tradeDate} ${rowLabel(r)}`}>
+                <div className="txn-mobile-heading">
+                  <span>{tradeDate}</span>
+                  {transfer
+                    ? <Tag color="purple">转仓</Tag>
+                    : <Tag color={r.txn.txn_type === 'buy' ? 'volcano' : 'green'}>{r.txn.txn_type === 'buy' ? '买入' : '卖出'}</Tag>}
+                  <strong>{yuan(amount)} 元</strong>
+                </div>
+                {transfer ? (
+                  <div className="txn-mobile-funds">
+                    <div>
+                      <span className="txn-mobile-label">转出</span>
+                      <div>{fundCell(r.sell?.fund_name, r.sell?.fund_code)}</div>
+                      <small>单位净值 {navCell(r.sell?.nav)} · 份额 {num(r.sell?.shares, 2)}</small>
+                    </div>
+                    <div>
+                      <span className="txn-mobile-label">转入</span>
+                      <div>{fundCell(r.buy?.fund_name, r.buy?.fund_code)}</div>
+                      <small>单位净值 {navCell(r.buy?.nav)} · 份额 {num(r.buy?.shares, 2)}</small>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="txn-mobile-funds">
+                    <div>{fundCell(r.txn.fund_name, r.txn.fund_code)}</div>
+                    <small>单位净值 {navCell(r.txn.nav)} · 份额 {num(r.txn.shares, 2)}</small>
+                  </div>
+                )}
+                <div className="txn-mobile-footer">
+                  <Checkbox
+                    checked={selectedVisibleKeys.includes(r.key)}
+                    onChange={(e) => setSelectedKeys((prev) => e.target.checked
+                      ? [...prev, r.key]
+                      : prev.filter((key) => key !== r.key))}
+                  >
+                    选择
+                  </Checkbox>
+                  <Button icon={<EditOutlined />} onClick={() => editRow(r)}>编辑</Button>
+                  <Popconfirm
+                    title={transfer ? '删除该转仓（卖出 + 买入两条一并删除）？' : '删除该交易？'}
+                    overlayClassName="reconcile-mobile-popconfirm"
+                    onConfirm={() => removeRow(r.key)}
+                  >
+                    <Button danger icon={<DeleteOutlined />}>删除</Button>
+                  </Popconfirm>
+                </div>
+              </section>
+            )
+          })}
+        </div>
+        </>
       )}
 
       <Modal
+        className="txn-modal"
         open={open}
         title={editingTransfer ? '修改转仓' : editingId != null ? '修改交易' : '记一笔交易'}
         onOk={submit}
@@ -380,6 +468,7 @@ export default function TxnPanel({
           {!editing && (
             <Segmented
               block
+              aria-label="交易类型"
               value={kind}
               onChange={(v) => setKind(v as Kind)}
               options={[
@@ -398,8 +487,9 @@ export default function TxnPanel({
           )}
           {fundField}
           <div>
-            <Typography.Text type="secondary">交易日（按当日单位净值折算份额）</Typography.Text>
+            <label className="txn-form-label" htmlFor="txn-date">交易日（按当日单位净值折算份额）</label>
             <DatePicker
+              id="txn-date"
               style={{ width: '100%', marginTop: 4 }}
               value={date}
               onChange={setDate}
@@ -407,12 +497,14 @@ export default function TxnPanel({
             />
           </div>
           <div>
-            <Typography.Text type="secondary">金额（元）</Typography.Text>
+            <label className="txn-form-label" htmlFor="txn-amount">金额（元）</label>
             <InputNumber
+              id="txn-amount"
               style={{ width: '100%', marginTop: 4 }}
               value={amount}
               min={0}
               precision={2}
+              inputMode="decimal"
               onChange={(v) => setAmount(v)}
               placeholder="申购 / 赎回金额"
               formatter={(x) => {

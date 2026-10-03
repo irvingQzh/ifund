@@ -19,23 +19,27 @@ def _run_per_fund(args, process_one) -> None:
     ok = skip = fail = 0
     fails: list[str] = []
     for i, code in enumerate(targets, 1):
+        error = None
         try:
-            r = process_one(code) or "success"
+            r = process_one(code)
         except Exception as exc:  # pylint: disable=broad-exception-caught
             r = "fail"
-            fails.append(f"{code}:{exc}")
+            error = str(exc)
         if r == "success":
             ok += 1
         elif r == "skip":
             skip += 1
         else:
             fail += 1
+            fails.append(f"{code}:{error or f'未成功完成（状态 {r!r}）'}")
         if not args.json and (i % 20 == 0 or i == n):
             print(f"\r进度 {i}/{n}  新增{ok} 跳过{skip} 失败{fail}", end="", flush=True)
     if not args.json:
         print()
     out = {"total": n, "success": ok, "skip": skip, "fail": fail, "fails": fails[:20]}
     output.emit(out, args.json, lambda d: d["fails"] and print("失败样例:", "; ".join(d["fails"])))
+    if fail:
+        raise SystemExit(1)
 
 
 def cmd_calendar(args) -> None:

@@ -239,6 +239,39 @@ class SqliteDatabase(Database):
             conn.executemany(sql, [[row.get(col) for col in cols] for row in chunk])
         conn.commit()
 
+    def replace_partitions(self, table: str, rows: list[dict], partition_columns: tuple[str, ...]) -> None:
+        """只替换本批次覆盖的分区，任何删除或插入失败都回滚整批。"""
+        if not rows:
+            return
+        cols = list(rows[0])
+        identifiers = [table, *cols, *partition_columns]
+        if any(not isinstance(value, str) or not re.fullmatch(r"[A-Za-z_][A-Za-z_0-9]*", value)
+               for value in identifiers):
+            raise ValueError("分区替换包含无效的表名或列名")
+        if not partition_columns or len(set(partition_columns)) != len(partition_columns):
+            raise ValueError("分区列不能为空或重复")
+        if not set(partition_columns).issubset(cols):
+            raise ValueError("数据缺少分区列")
+        partitions = set()
+        values = []
+        for row in rows:
+            if set(row) != set(cols):
+                raise ValueError("分区替换的所有行必须具有相同字段")
+            key = tuple(row[column] for column in partition_columns)
+            if any(value is None or value == "" for value in key):
+                raise ValueError("分区值不能为空")
+            partitions.add(key)
+            values.append([row[column] for column in cols])
+        where = " AND ".join(f'"{column}" = ?' for column in partition_columns)
+        col_sql = ",".join(f'"{column}"' for column in cols)
+        placeholders = ",".join("?" * len(cols))
+        conn = self._conn()
+        if conn.in_transaction:
+            raise RuntimeError("分区替换不能提交已有的未完成事务")
+        with conn:
+            conn.executemany(f'DELETE FROM "{table}" WHERE {where}', list(partitions))
+            conn.executemany(f'INSERT INTO "{table}" ({col_sql}) VALUES ({placeholders})', values)
+
     def update(self, table: str, filters: dict, data: dict) -> None:
         set_sql = ", ".join(f'"{col}" = ?' for col in data)
         sql = f'UPDATE "{table}" SET {set_sql}'

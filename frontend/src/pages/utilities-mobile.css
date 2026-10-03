@@ -1,0 +1,428 @@
+.qfund-login-screen {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: 24px max(16px, env(safe-area-inset-right)) 24px max(16px, env(safe-area-inset-left));
+}
+
+.qfund-login-card {
+  width: min(380px, 100%);
+}
+
+.qfund-calendar-heading,
+.qfund-calendar-controls,
+.qfund-tokens-heading,
+.qfund-token-create {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.qfund-calendar-heading {
+  flex-wrap: wrap;
+}
+
+.qfund-calendar-controls .ant-input-number {
+  width: 100px;
+}
+
+.qfund-industry-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.qfund-industry-filters .ant-select:first-child {
+  width: 110px;
+}
+
+.qfund-industry-filters .ant-select:nth-child(2) {
+  width: 120px;
+}
+
+.qfund-industry-filters .ant-input-search {
+  width: 200px;
+}
+
+.qfund-industry-mobile-view,
+.qfund-industry-mobile-pagination,
+.qfund-token-mobile-list,
+.qfund-industry-task-help {
+  display: none;
+}
+
+.qfund-token-create {
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.qfund-token-create .ant-input {
+  width: min(260px, 100%);
+}
+
+.qfund-token-secret-modal code {
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 767px) {
+  .qfund-login-screen {
+    align-items: center;
+    padding-block: max(20px, env(safe-area-inset-top)) max(20px, env(safe-area-inset-bottom));
+  }
+
+  .qfund-login-card .ant-card-head {
+    min-height: auto;
+  }
+
+  .qfund-login-card .ant-card-head-title {
+    white-space: normal;
+    font-size: 18px;
+    line-height: 1.4;
+  }
+
+  .qfund-login-card .ant-input,
+  .qfund-login-card .ant-input-password,
+  .qfund-login-card .ant-btn {
+    min-height: 44px;
+  }
+
+  .qfund-login-card .ant-input,
+  .qfund-login-card .ant-input-password input {
+    font-size: 16px;
+  }
+
+  .qfund-login-card .ant-input-password-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+  }
+
+  .qfund-login-card .ant-tabs-tab {
+    min-height: 44px;
+  }
+
+  .qfund-calendar-card .ant-card-head-wrapper {
+    flex-wrap: wrap;
+    gap: 8px;
+    padding-block: 12px;
+  }
+
+  .qfund-calendar-card .ant-card-head-title,
+  .qfund-calendar-card .ant-card-extra {
+    flex: 0 0 100%;
+    min-width: 0;
+    padding: 0;
+  }
+
+  .qfund-calendar-controls {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+
+  .qfund-calendar-controls .ant-input-number {
+    width: 100%;
+    min-height: 44px;
+  }
+
+  .qfund-calendar-controls .ant-input-number-input {
+    height: 42px;
+    font-size: 16px;
+  }
+
+  .qfund-calendar-controls .ant-btn {
+    min-height: 44px;
+  }
+
+  .qfund-calendar-controls .ant-btn-primary {
+    grid-column: 1 / -1;
+  }
+
+  .qfund-calendar-legend {
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 8px 16px;
+  }
+
+  .qfund-calendar-card .grid.grid-cols-7 {
+    font-size: 12px;
+  }
+
+  .qfund-industry-page,
+  .qfund-industry-page > .ant-space-item {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .qfund-industry-summary .ant-card-body {
+    padding: 12px;
+  }
+
+  .qfund-industry-summary .ant-statistic-title {
+    min-height: 38px;
+    line-height: 1.35;
+  }
+
+  .qfund-industry-summary .ant-statistic-content {
+    font-size: clamp(17px, 5vw, 23px);
+  }
+
+  .qfund-industry-summary .ant-statistic-content-suffix {
+    font-size: 13px;
+  }
+
+  .qfund-industry-task-card .ant-card-head-wrapper,
+  .qfund-industry-map .ant-card-head-wrapper {
+    flex-wrap: wrap;
+    gap: 8px;
+    padding-block: 10px;
+  }
+
+  .qfund-industry-task-card .ant-card-head-title,
+  .qfund-industry-task-card .ant-card-extra,
+  .qfund-industry-map .ant-card-head-title,
+  .qfund-industry-map .ant-card-extra,
+  .qfund-industry-breakdown .ant-card-head-title {
+    min-width: 0;
+    white-space: normal;
+    padding: 0;
+  }
+
+  .qfund-industry-task-card .ant-card-head-title,
+  .qfund-industry-task-card .ant-card-extra {
+    flex: 0 0 100%;
+  }
+
+  .qfund-industry-task-card .ant-card-extra .ant-btn,
+  .qfund-industry-map .ant-card-extra .ant-btn,
+  .qfund-industry-mobile-row .ant-btn {
+    min-height: 44px;
+  }
+
+  .qfund-industry-task-help {
+    display: block;
+    margin: 0 0 12px;
+    color: rgba(255, 255, 255, 0.72);
+    line-height: 1.5;
+  }
+
+  .qfund-industry-breakdown .ant-tag {
+    max-width: 100%;
+    margin-inline-end: 0;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  .qfund-industry-filters {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+
+  .qfund-industry-filters .ant-select:first-child,
+  .qfund-industry-filters .ant-select:nth-child(2),
+  .qfund-industry-filters .ant-input-search {
+    width: 100%;
+  }
+
+  .qfund-industry-filters .ant-input-search {
+    grid-column: 1 / -1;
+  }
+
+  .qfund-industry-filters .ant-select-selector,
+  .qfund-industry-filters .ant-input,
+  .qfund-industry-filters .ant-input-search-button {
+    min-height: 44px;
+  }
+
+  .qfund-industry-filters .ant-input {
+    font-size: 16px;
+  }
+
+  .qfund-industry-desktop-table,
+  .qfund-token-desktop-table {
+    display: none;
+  }
+
+  .qfund-industry-mobile-view,
+  .qfund-token-mobile-list {
+    display: block;
+  }
+
+  .qfund-industry-mobile-row,
+  .qfund-token-mobile-row {
+    padding: 16px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+    font-size: 16px;
+  }
+
+  .qfund-industry-mobile-row:first-child,
+  .qfund-token-mobile-row:first-child {
+    padding-top: 4px;
+  }
+
+  .qfund-industry-mobile-row:last-child,
+  .qfund-token-mobile-row:last-child {
+    border-bottom: 0;
+    padding-bottom: 4px;
+  }
+
+  .qfund-industry-mobile-row-head,
+  .qfund-token-mobile-row-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .qfund-industry-mobile-row-head strong,
+  .qfund-token-mobile-row-head strong {
+    display: block;
+    font-size: 16px;
+    overflow-wrap: anywhere;
+  }
+
+  .qfund-industry-mobile-row-head code {
+    display: block;
+    margin-top: 4px;
+    color: rgba(255, 255, 255, 0.65);
+  }
+
+  .qfund-industry-mobile-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  .qfund-industry-mobile-tags .ant-tag,
+  .qfund-token-mobile-row-head .ant-tag {
+    margin-inline-end: 0;
+  }
+
+  .qfund-industry-mobile-fields,
+  .qfund-token-mobile-fields {
+    display: grid;
+    gap: 8px;
+    margin: 12px 0;
+  }
+
+  .qfund-industry-mobile-fields > div,
+  .qfund-token-mobile-fields > div {
+    display: grid;
+    grid-template-columns: 72px minmax(0, 1fr);
+    gap: 8px;
+  }
+
+  .qfund-industry-mobile-fields dt,
+  .qfund-token-mobile-fields dt {
+    color: rgba(255, 255, 255, 0.65);
+  }
+
+  .qfund-industry-mobile-fields dd,
+  .qfund-token-mobile-fields dd {
+    min-width: 0;
+    margin: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .qfund-industry-mobile-details summary {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+    color: #69b1ff;
+    cursor: pointer;
+  }
+
+  .qfund-industry-mobile-details summary:focus-visible {
+    outline: 2px solid #69b1ff;
+    outline-offset: 2px;
+  }
+
+  .qfund-industry-mobile-row > .ant-btn {
+    width: 100%;
+  }
+
+  .qfund-industry-mobile-pagination {
+    display: flex;
+    justify-content: center;
+    margin-top: 16px;
+  }
+
+  .qfund-industry-mobile-pagination .ant-pagination-item-link,
+  .qfund-industry-mobile-pagination .ant-pagination-simple-pager input {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .qfund-industry-edit-modal {
+    max-width: calc(100vw - 24px);
+  }
+
+  .qfund-industry-edit-modal .ant-modal-content {
+    display: flex;
+    flex-direction: column;
+    max-height: calc(100dvh - 32px);
+  }
+
+  .qfund-industry-edit-modal .ant-modal-body {
+    overflow-y: auto;
+  }
+
+  .qfund-industry-edit-modal .ant-input,
+  .qfund-industry-edit-modal .ant-select-selector,
+  .qfund-industry-edit-modal .ant-btn {
+    min-height: 44px;
+  }
+
+  .qfund-industry-edit-modal .ant-modal-close,
+  .qfund-token-secret-modal .ant-modal-close {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .qfund-tokens-card .ant-card-head-title {
+    white-space: normal;
+  }
+
+  .qfund-token-create {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+  }
+
+  .qfund-token-create .ant-input,
+  .qfund-token-create .ant-btn {
+    width: 100%;
+    min-height: 44px;
+  }
+
+  .qfund-token-create .ant-input {
+    font-size: 16px;
+  }
+
+  .qfund-token-mobile-row > .ant-btn,
+  .qfund-token-mobile-row .ant-btn {
+    min-height: 44px;
+  }
+
+  .qfund-token-secret-modal {
+    max-width: calc(100vw - 24px);
+  }
+
+  .qfund-token-secret-modal .ant-btn {
+    min-height: 44px;
+  }
+
+  .qfund-token-secret-modal .ant-typography-copy {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 44px;
+    min-height: 44px;
+  }
+}

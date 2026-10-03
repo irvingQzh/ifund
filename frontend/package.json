@@ -7,6 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
+    "check:deployment": "node scripts/check-deployment.mjs",
     "lint": "eslint ."
   },
   "dependencies": {

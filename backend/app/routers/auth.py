@@ -10,7 +10,7 @@ import hashlib
 import secrets
 
 import bcrypt
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, current_app, jsonify, request
 from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required
 from pydantic import ValidationError
 
@@ -43,10 +43,17 @@ def _bearer_token() -> str:
 @bp.post("/register")
 def register():
     """创建用户（username 唯一）。"""
+    if not current_app.config.get("ALLOW_REGISTRATION", False):
+        return jsonify({"detail": "公开注册已关闭"}), 403
+    data = request.get_json(silent=True) or {}
+    if not isinstance(data, dict):
+        return jsonify({"detail": "invalid request"}), 422
     try:
-        payload = UserCreate(**(request.get_json(silent=True) or {}))
+        payload = UserCreate(**data)
     except ValidationError as exc:
         return jsonify({"detail": exc.errors()}), 422
+    if not payload.username.strip() or not 8 <= len(payload.password.encode()) <= 72:
+        return jsonify({"detail": "用户名不能为空，密码须为 8 至 72 字节"}), 422
     if database.select_one("users", {"username": f"eq.{payload.username}"}):
         return jsonify({"detail": "用户名已存在"}), 400
     hashed = bcrypt.hashpw(payload.password.encode(), bcrypt.gensalt()).decode()
@@ -58,10 +65,18 @@ def register():
 def login():
     """校验密码，返回 access_token。接受 JSON 或 form。"""
     data = request.get_json(silent=True) or request.form.to_dict()
+    if not isinstance(data, dict):
+        return jsonify({"detail": "用户名或密码错误"}), 401
     username = str(data.get("username", ""))
     password = str(data.get("password", ""))
+    if not username or len(password.encode()) > 72:
+        return jsonify({"detail": "用户名或密码错误"}), 401
     user = database.select_one("users", {"username": f"eq.{username}"})
-    if not user or not bcrypt.checkpw(password.encode(), user["hashed_password"].encode()):
+    try:
+        password_ok = bool(user) and bcrypt.checkpw(password.encode(), user["hashed_password"].encode())
+    except (ValueError, TypeError):
+        password_ok = False
+    if not password_ok:
         return jsonify({"detail": "用户名或密码错误"}), 401
     token = create_access_token(identity=username)
     return jsonify(Token(access_token=token).model_dump())

@@ -1,14 +1,17 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Button, Card, Empty, Table, Tag, Typography, message } from 'antd'
-import { ReloadOutlined } from '@ant-design/icons'
+import { Button, Card, Empty, Spin, Table, Tag, Typography, message } from 'antd'
+import { DownOutlined, ReloadOutlined } from '@ant-design/icons'
 import request from '../../api/request'
 import type { ClusterMeta, ComputedHolding } from './types'
 import HoldingsEditor from './HoldingsEditor'
 import TxnPanel from './TxnPanel'
+import './holdings-manager-mobile.css'
 
 const yuan = (v: number) => v.toLocaleString('zh-CN', { maximumFractionDigits: 0 })
 const num = (v: number | null | undefined, d = 2) =>
   v == null ? '—' : v.toLocaleString('zh-CN', { maximumFractionDigits: d })
+const money = (v: number) => v.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+const signedMoney = (v: number) => `${v > 0 ? '+' : v < 0 ? '-' : ''}¥${money(Math.abs(v))}`
 
 const ZERO_EPS = 0.5   // 市值 ≤ 此值视为「已清零」，仍展示在表格但标记「已清仓」，不计入统计
 
@@ -244,11 +247,12 @@ export default function HoldingsManager({
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       <Card
+        className="qfund-holdings-card"
         size="small"
         title={
-          <span>
-            实际持仓
-            <Typography.Text type="secondary" style={{ fontSize: 12, fontWeight: 'normal', marginLeft: 8 }}>
+          <div className="qfund-holdings-title">
+            <span>实际持仓</span>
+            <Typography.Text className="qfund-holdings-overview" type="secondary">
               共 {holdings.length} 只 · 市值 {yuan(total)} 元
               {hasPnl && <>· 累计盈亏 <span style={{ color: pnlTotal >= 0 ? '#f5222d' : '#52c41a' }}>{pnlTotal >= 0 ? '+' : ''}{yuan(pnlTotal)}</span> 元</>}
               {hasPnl && investedTotal > 0 && (
@@ -258,9 +262,9 @@ export default function HoldingsManager({
               )}
               {zeroCount > 0 && <>· 其中 {zeroCount} 只已清仓</>}
             </Typography.Text>
-          </span>
+          </div>
         }
-        extra={<Button size="small" icon={<ReloadOutlined />} onClick={loadHoldings}>刷新</Button>}
+        extra={<Button className="qfund-holdings-refresh" icon={<ReloadOutlined />} onClick={loadHoldings}>刷新</Button>}
       >
         <Typography.Paragraph type="secondary" style={{ fontSize: 12, marginTop: -4 }}>
           实际持仓 = 初始化快照 + 交易记录 综合算出（份额按交易当日单位净值折算，市值 = 份额 × 最新单位净值，
@@ -270,12 +274,75 @@ export default function HoldingsManager({
         {displayList.length === 0 ? (
           <Empty description="暂无持仓。先在下方「初始化快照」录入首次建仓金额。" />
         ) : (
-          <Table<ComputedHolding>
+          <>
+            <Spin spinning={loading}>
+              <div className="qfund-mobile-holdings" aria-busy={loading}>
+                {displayList.map((holding) => {
+                const isPhantom = holding._phantom === true
+                const isTarget = targetFundCodes.has(holding.fund_code)
+                const isClosed = !isPhantom && (holding.market_value || 0) <= ZERO_EPS
+                const pnl = holding.pnl
+                const returnPct = pnl != null && holding.total_invested
+                  ? pnl / holding.total_invested * 100 : null
+                const pnlClass = pnl == null ? '' : pnl > 0 ? 'qfund-gain' : pnl < 0 ? 'qfund-loss' : ''
+                return (
+                  <div key={holding.fund_code}>
+                    {hasPreset && rowSpanByCode[holding.fund_code] > 0 && (
+                      <div className="qfund-mobile-cluster">{renderCluster(holding.fund_code)}</div>
+                    )}
+                    <article className="qfund-holding-item" aria-label={`${holding.fund_name || holding.fund_code}持仓`}>
+                      <div className="qfund-holding-heading">
+                        <div className="qfund-holding-name">
+                          <strong>{holding.fund_name || '未命名基金'}</strong>
+                          <span>{holding.fund_code}</span>
+                        </div>
+                        <div className="qfund-holding-tags">
+                          {isTarget && <Tag color="gold">目标</Tag>}
+                          {isClosed && <Tag>已清仓</Tag>}
+                          {isPhantom && <Tag>待建仓</Tag>}
+                          {holding.valuation_ok === false && <Tag color="warning">估值不可用</Tag>}
+                        </div>
+                      </div>
+                      <div className="qfund-holding-value-row">
+                        <div>
+                          <span className="qfund-holding-label">当前市值</span>
+                          <strong className="qfund-holding-value">¥{money(holding.market_value || 0)}</strong>
+                        </div>
+                        <span className="qfund-holding-ratio">
+                          占组合 {total > 0 ? (holding.market_value / total * 100).toFixed(1) : '0.0'}%
+                        </span>
+                      </div>
+                      <div className="qfund-holding-result">
+                        <span>累计盈亏 <strong className={pnlClass}>
+                          {pnl == null ? '—' : signedMoney(pnl)}
+                        </strong></span>
+                        <span>收益率 <strong className={pnlClass}>
+                          {returnPct == null ? '—' : `${returnPct > 0 ? '+' : ''}${returnPct.toFixed(2)}%`}
+                        </strong></span>
+                      </div>
+                      <details className="qfund-holding-details">
+                        <summary>查看净值、份额和成本 <DownOutlined aria-hidden="true" /></summary>
+                        <dl>
+                          <div><dt>持有份额</dt><dd>{num(holding.shares, 2)}</dd></div>
+                          <div><dt>最新净值</dt><dd>{num(holding.latest_nav, 4)}</dd></div>
+                          <div><dt>净值日期</dt><dd>{holding.nav_date || '—'}</dd></div>
+                          <div><dt>成本</dt><dd>{holding.cost == null ? '—' : `¥${money(holding.cost)}`}</dd></div>
+                        </dl>
+                      </details>
+                    </article>
+                  </div>
+                )
+                })}
+              </div>
+            </Spin>
+            <Table<ComputedHolding>
+            className="qfund-desktop-holdings-table"
             size="small"
             rowKey="fund_code"
             loading={loading}
             dataSource={displayList}
             pagination={false}
+            scroll={{ x: hasPreset ? 1500 : 1160 }}
             columns={[
               ...(hasPreset ? [{
                 title: '所属赛道（簇）', dataIndex: 'fund_code', key: 'cluster', width: 340,
@@ -332,7 +399,8 @@ export default function HoldingsManager({
                 },
               },
             ]}
-          />
+            />
+          </>
         )}
       </Card>
 

@@ -34,6 +34,7 @@ function AiLine({ ai }: { ai?: FundAi | null }) {
       {ai.verdict && (
         <Tooltip title={ai.verdict} placement="top">
           <span
+            className="qfund-position-ai-verdict"
             style={{
               fontSize: 12, color: '#8c8c8c', maxWidth: 360,
               overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', cursor: 'default',
@@ -82,6 +83,7 @@ export default function PositionRow({
 
   return (
     <div
+      className="qfund-position-row"
       style={{
         display: 'flex',
         flexWrap: 'wrap',   // 窄屏时各栏自动换行，避免动量条与重仓股重叠
@@ -92,7 +94,7 @@ export default function PositionRow({
       }}
     >
       {/* 左：目标权重 */}
-      <div style={{ width: 140, flexShrink: 0 }}>
+      <div className="qfund-position-row-weight" style={{ width: 140, flexShrink: 0 }}>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
           <span style={{ fontSize: 26, fontWeight: 700, lineHeight: 1 }}>{pct}%</span>
           <Tag color={TAG_COLOR[rec.tag] ?? 'blue'} style={{ marginInlineEnd: 0 }}>
@@ -116,7 +118,7 @@ export default function PositionRow({
       </div>
 
       {/* 中：簇 + 代表基金 + 指标 + 走势图 + 前十大重仓股 */}
-      <div style={{ flex: '1 1 460px', minWidth: 320 }}>
+      <div className="qfund-position-row-main" style={{ flex: '1 1 460px', minWidth: 320 }}>
         <div>
           <Tag color="geekblue">簇 {item.cluster_id}</Tag>
           <span style={{ fontWeight: 600 }}>
@@ -154,7 +156,7 @@ export default function PositionRow({
 
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 24, marginTop: 6, alignItems: 'flex-start' }}>
           {/* 左块：指标 + 迷你走势图 */}
-          <div style={{ flex: '1 1 320px', maxWidth: 430 }}>
+          <div className="qfund-position-row-metrics" style={{ flex: '1 1 320px', maxWidth: 430 }}>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '2px 14px' }}>
               {metric('Sharpe3y', fmt(fund.sharpe_3y), fund.sharpe_3y && fund.sharpe_3y >= 1 ? '#f5222d' : undefined)}
               {metric('Sharpe1y', fmt(fund.sharpe_1y))}
@@ -169,7 +171,7 @@ export default function PositionRow({
           </div>
 
           {/* 右块：前十大重仓股（名称 · 行业 · 占净值比例） */}
-          <div style={{ flex: 1, minWidth: 240 }}>
+          <div className="qfund-position-row-holdings" style={{ flex: 1, minWidth: 240 }}>
             <div style={{ fontSize: 12, color: '#8c8c8c', marginBottom: 4 }}>
               前十大重仓股{holdings.length ? `（合计 ${holdings.reduce((a, h) => a + h.ratio, 0).toFixed(1)}%）` : ''}
             </div>
@@ -235,7 +237,7 @@ export default function PositionRow({
       </div>
 
       {/* 右：动量强度（收缩为固定宽度）+ 乖离 + 理由 */}
-      <div style={{ width: 280, flexShrink: 0 }}>
+      <div className="qfund-position-row-momentum" style={{ width: 280, flexShrink: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
           <span style={{ fontSize: 12, color: '#8c8c8c' }}>动量强度</span>
           <b style={{ fontSize: 16 }}>{pros.total.toFixed(0)}</b>

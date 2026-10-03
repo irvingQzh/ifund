@@ -3,10 +3,11 @@ import {
   Alert,
   Button,
   Card,
+  Empty,
   Input,
   Modal,
   Popconfirm,
-  Space,
+  Spin,
   Table,
   Tag,
   Typography,
@@ -15,6 +16,7 @@ import {
 import { DeleteOutlined, KeyOutlined, PlusOutlined } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
 import request from '../api/request'
+import './utilities-mobile.css'
 
 interface TokenItem {
   id: number
@@ -100,42 +102,67 @@ export default function TokensPage() {
 
   return (
     <Card
+      className="qfund-tokens-card"
       title={
-        <Space>
-          <KeyOutlined />
+        <span className="qfund-tokens-heading">
+          <KeyOutlined aria-hidden="true" />
           个人访问令牌（PAT）
-        </Space>
-      }
-      extra={
-        <Space.Compact>
-          <Input
-            placeholder="令牌名称（可选）"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            style={{ width: 180 }}
-          />
-          <Button type="primary" icon={<PlusOutlined />} loading={creating} onClick={create}>
-            新建令牌
-          </Button>
-        </Space.Compact>
+        </span>
       }
     >
+      <div className="qfund-token-create">
+        <label htmlFor="qfund-token-name">令牌名称（可选）</label>
+        <Input
+          id="qfund-token-name"
+          placeholder="例如：本机工具"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+        />
+        <Button type="primary" icon={<PlusOutlined />} loading={creating} onClick={create}>
+          新建令牌
+        </Button>
+      </div>
       <Alert
         type="info"
         showIcon
         className="mb-3"
         message="供 OpenClaw 等本机 agent 通过 MCP 长期调用。令牌绑定当前账号，明文仅在创建时显示一次。"
       />
+      <div className="qfund-token-mobile-list">
+        <Spin spinning={loading}>
+          {tokens.length === 0 && !loading ? <Empty description="暂无访问令牌" /> : tokens.map((token) => (
+            <article className="qfund-token-mobile-row" key={token.id}>
+              <div className="qfund-token-mobile-row-head">
+                <strong>{token.name || '（未命名）'}</strong>
+                <Tag color={token.revoked ? 'red' : 'green'}>{token.revoked ? '已吊销' : '有效'}</Tag>
+              </div>
+              <dl className="qfund-token-mobile-fields">
+                <div><dt>前缀</dt><dd><code>{token.prefix}…</code></dd></div>
+                <div><dt>最近使用</dt><dd>{token.last_used_at || '—'}</dd></div>
+                <div><dt>创建时间</dt><dd>{token.created_at || '—'}</dd></div>
+              </dl>
+              {!token.revoked && (
+                <Popconfirm title="吊销后该令牌立即失效，确认？" onConfirm={() => revoke(token.id)}>
+                  <Button danger icon={<DeleteOutlined />}>吊销令牌</Button>
+                </Popconfirm>
+              )}
+            </article>
+          ))}
+        </Spin>
+      </div>
       <Table
+        className="qfund-token-desktop-table"
         rowKey="id"
         size="small"
         loading={loading}
         columns={columns}
         dataSource={tokens}
         pagination={false}
+        scroll={{ x: 760 }}
       />
 
       <Modal
+        className="qfund-token-secret-modal"
         title="令牌已创建"
         open={!!plaintext}
         onOk={() => setPlaintext(null)}

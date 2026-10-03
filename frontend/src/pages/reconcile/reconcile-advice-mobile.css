@@ -1,0 +1,172 @@
+.reconcile-mode-choice,
+.reconcile-penetration-meta {
+  margin-inline-start: 8px;
+}
+
+.reconcile-penetration-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.reconcile-scroll-hint {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .reconcile-mobile,
+  .reconcile-mobile > *,
+  .reconcile-card,
+  .reconcile-card .ant-card-body {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .reconcile-mode-options {
+    width: 100%;
+  }
+
+  .reconcile-mode-options .ant-space-item {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .reconcile-mode-option {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .reconcile-mode-choice {
+    display: block;
+    max-width: 100%;
+    margin-inline-start: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .reconcile-mode-choice .ant-segmented {
+    white-space: nowrap;
+  }
+
+  .reconcile-mode-card .ant-segmented-item-label,
+  .reconcile-penetration-card .ant-segmented-item-label {
+    min-height: 44px;
+    line-height: 44px;
+  }
+
+  .reconcile-mode-card .ant-btn,
+  .reconcile-card .ant-btn {
+    min-height: 44px;
+  }
+
+  .reconcile-mode-card .ant-tag {
+    max-width: 100%;
+    white-space: normal;
+  }
+
+  .reconcile-card .ant-card-head-wrapper {
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .reconcile-card .ant-card-head-title {
+    flex: 1 1 100%;
+    min-width: 0;
+    padding-bottom: 0;
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+  }
+
+  .reconcile-card .ant-card-extra {
+    max-width: 100%;
+    margin-inline-start: 0;
+    padding-top: 0;
+  }
+
+  .reconcile-card .ant-table-wrapper,
+  .reconcile-card .ant-table-content {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .reconcile-card .ant-table-content {
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .reconcile-summary-title {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 8px;
+  }
+
+  .reconcile-summary-title .ant-tag {
+    margin-inline-end: 0;
+  }
+
+  .reconcile-summary-card .ant-statistic-title {
+    white-space: normal;
+  }
+
+  .reconcile-summary-card .ant-statistic-content {
+    font-size: clamp(20px, 6vw, 24px);
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+  }
+
+  .reconcile-summary-formula {
+    display: inline-block;
+    max-width: 100%;
+    white-space: normal;
+    line-height: 1.6;
+    overflow-wrap: anywhere;
+  }
+
+  .reconcile-penetration-title,
+  .reconcile-penetration-meta {
+    display: block;
+  }
+
+  .reconcile-penetration-meta {
+    margin-inline-start: 0;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+  }
+
+  .reconcile-penetration-actions {
+    flex-wrap: wrap;
+    max-width: 100%;
+  }
+
+  .reconcile-penetration-card .ant-pagination {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
+
+  .reconcile-scroll-hint {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 13px;
+    line-height: 1.5;
+    color: rgba(255, 255, 255, 0.65);
+  }
+
+  .reconcile-expanded-funds {
+    padding-inline-start: 0 !important;
+  }
+
+  .reconcile-transfers-card .ant-space {
+    max-width: 100%;
+  }
+
+  .reconcile-transfers-card .ant-table-cell {
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+}

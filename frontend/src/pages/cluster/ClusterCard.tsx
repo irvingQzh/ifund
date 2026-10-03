@@ -75,14 +75,13 @@ function HoldingChip({ holding }: { holding: Holding }) {
 function FundRow({ fund }: { fund: ClusterFund }) {
   return (
     <div
+      className="qfund-cluster-fund-row"
       style={{
-        display: 'flex',
-        gap: 12,
         padding: '10px 0',
         borderBottom: '1px solid rgba(140,140,140,0.15)',
       }}
     >
-      <div style={{ width: 180, flexShrink: 0 }}>
+      <div className="qfund-cluster-fund-info">
         <div style={{ fontWeight: 600 }}>{fund.name}</div>
         <div style={{ fontSize: 12, color: '#8c8c8c' }}>{fund.code}</div>
         <div style={{ fontSize: 12, marginTop: 4 }}>综合分 {fund.score.toFixed(3)}</div>
@@ -91,7 +90,7 @@ function FundRow({ fund }: { fund: ClusterFund }) {
           {fund.scale != null ? ` · ${fund.scale.toFixed(2)} 亿` : ''}
         </div>
       </div>
-      <div style={{ flex: 1, display: 'flex', flexWrap: 'wrap', gap: 6, alignContent: 'flex-start' }}>
+      <div className="qfund-cluster-fund-holdings">
         {fund.holdings.length ? (
           fund.holdings.map((h) => <HoldingChip key={h.code} holding={h} />)
         ) : (

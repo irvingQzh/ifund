@@ -1,4 +1,4 @@
-"""数据库抽象层基类：定义后端无关的统一接口契约（9 方法）。
+"""数据库抽象层基类：定义后端无关的统一接口契约。
 
 业务代码与 worker 只依赖本契约，不关心底层是 SQLite 还是（未来的）MySQL。
 新增后端 = 新增一个实现 ``Database`` 的子类，业务代码零改动。
@@ -41,6 +41,10 @@ class Database(abc.ABC):
     @abc.abstractmethod
     def batch_insert(self, table: str, rows: list[dict], batch_size: int = 500) -> None:
         """批量插入（重复主键/唯一键则替换）。"""
+
+    @abc.abstractmethod
+    def replace_partitions(self, table: str, rows: list[dict], partition_columns: tuple[str, ...]) -> None:
+        """原子替换 rows 中出现的分区，保留其余分区；空 rows 不删除任何记录。"""
 
     @abc.abstractmethod
     def update(self, table: str, filters: dict, data: dict) -> None:

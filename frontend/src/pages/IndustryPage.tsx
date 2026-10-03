@@ -3,13 +3,16 @@ import {
   Button,
   Card,
   Col,
+  Empty,
   Form,
   Input,
   Modal,
+  Pagination,
   Progress,
   Row,
   Select,
   Space,
+  Spin,
   Statistic,
   Table,
   Tag,
@@ -19,6 +22,7 @@ import {
 import { EditOutlined, ReloadOutlined } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
 import request from '../api/request'
+import './utilities-mobile.css'
 
 interface IndustryRow {
   stock_code: string
@@ -237,14 +241,14 @@ export default function IndustryPage() {
   const emRunning = emTask?.status === 'running'
 
   return (
-    <Space direction="vertical" size="middle" style={{ width: '100%' }}>
-      <Row gutter={12}>
-        <Col span={4}>
+    <Space direction="vertical" size="middle" style={{ width: '100%' }} className="qfund-industry-page">
+      <Row gutter={[12, 12]} className="qfund-industry-summary">
+        <Col xs={12} sm={8} xl={4}>
           <Card size="small">
             <Statistic title="持仓股票总数" value={stats?.held_total ?? 0} />
           </Card>
         </Col>
-        <Col span={4}>
+        <Col xs={12} sm={8} xl={4}>
           <Card size="small">
             <Statistic
               title="总覆盖率"
@@ -254,7 +258,7 @@ export default function IndustryPage() {
             />
           </Card>
         </Col>
-        <Col span={4}>
+        <Col xs={12} sm={8} xl={4}>
           <Card size="small">
             <Statistic
               title={`A股申万覆盖 (${stats?.a_sw_pct ?? 0}%)`}
@@ -263,7 +267,7 @@ export default function IndustryPage() {
             />
           </Card>
         </Col>
-        <Col span={4}>
+        <Col xs={12} sm={8} xl={4}>
           <Card size="small">
             <Statistic
               title="港股已覆盖"
@@ -272,7 +276,7 @@ export default function IndustryPage() {
             />
           </Card>
         </Col>
-        <Col span={4}>
+        <Col xs={12} sm={8} xl={4}>
           <Card size="small">
             <Statistic
               title="未覆盖"
@@ -281,16 +285,17 @@ export default function IndustryPage() {
             />
           </Card>
         </Col>
-        <Col span={4}>
+        <Col xs={12} sm={8} xl={4}>
           <Card size="small">
             <Statistic title="申万三级数 / 表行数" value={stats?.sw_l3_count ?? 0} suffix={`/ ${stats?.table_rows ?? 0}`} />
           </Card>
         </Col>
       </Row>
 
-      <Row gutter={12}>
-        <Col span={12}>
+      <Row gutter={[12, 12]} className="qfund-industry-tasks">
+        <Col xs={24} lg={12}>
           <Card
+            className="qfund-industry-task-card"
             size="small"
             title="① 申万三级采集（legulegu，主标签）"
             extra={
@@ -308,6 +313,7 @@ export default function IndustryPage() {
               </Space>
             }
           >
+            <p className="qfund-industry-task-help">采集申万三级行业；已采行业自动跳过，可分批续采。</p>
             {swTask ? (
               <>
                 <Progress
@@ -332,8 +338,9 @@ export default function IndustryPage() {
             )}
           </Card>
         </Col>
-        <Col span={12}>
+        <Col xs={24} lg={12}>
           <Card
+            className="qfund-industry-task-card"
             size="small"
             title="② 东财兜底（港股）"
             extra={
@@ -351,6 +358,7 @@ export default function IndustryPage() {
               </Space>
             }
           >
+            <p className="qfund-industry-task-help">补全港股行业并校正误判市场；此任务需可直连东财。</p>
             {emTask ? (
               <>
                 <Progress
@@ -378,6 +386,7 @@ export default function IndustryPage() {
       </Row>
 
       <Card
+        className="qfund-industry-breakdown"
         size="small"
         title={`行业分布（持仓标的数，按聚类标签全量，共 ${
           breakdown.filter((b) => b.label !== '未覆盖').length
@@ -396,6 +405,7 @@ export default function IndustryPage() {
       </Card>
 
       <Card
+        className="qfund-industry-map"
         size="small"
         title="股票 → 行业映射"
         extra={
@@ -404,10 +414,10 @@ export default function IndustryPage() {
           </Button>
         }
       >
-        <Space style={{ marginBottom: 12 }} wrap>
+        <div className="qfund-industry-filters">
           <Select
+            aria-label="筛选市场"
             value={market}
-            style={{ width: 110 }}
             onChange={(v) => { setMarket(v); setPage(1) }}
             options={[
               { value: '', label: '全部市场' },
@@ -417,8 +427,8 @@ export default function IndustryPage() {
             ]}
           />
           <Select
+            aria-label="筛选覆盖状态"
             value={status}
-            style={{ width: 120 }}
             onChange={(v) => { setStatus(v); setPage(1) }}
             options={[
               { value: '', label: '全部状态' },
@@ -427,18 +437,66 @@ export default function IndustryPage() {
             ]}
           />
           <Input.Search
+            aria-label="搜索股票代码或名称"
             placeholder="代码 / 名称"
             allowClear
-            style={{ width: 200 }}
             onSearch={(v) => { setKeyword(v); setPage(1) }}
           />
-        </Space>
+        </div>
+        <div className="qfund-industry-mobile-view">
+          <Spin spinning={loading}>
+            <div className="qfund-industry-mobile-list">
+              {rows.length === 0 && !loading ? <Empty description="暂无匹配的股票" /> : rows.map((row) => (
+                <article key={row.stock_code} className="qfund-industry-mobile-row">
+                  <div className="qfund-industry-mobile-row-head">
+                    <div>
+                      <strong>{row.stock_name}</strong>
+                      <code>{row.stock_code}</code>
+                    </div>
+                    <div className="qfund-industry-mobile-tags">
+                      <Tag>{MARKET_LABEL[row.market] || row.market}</Tag>
+                      <Tag color={row.covered ? 'green' : 'red'}>
+                        {row.covered ? (row.manual ? '人工' : '已覆盖') : '未覆盖'}
+                      </Tag>
+                    </div>
+                  </div>
+                  <dl className="qfund-industry-mobile-fields">
+                    <div><dt>聚类标签</dt><dd>{row.label || '—'}</dd></div>
+                    <div><dt>申万一级</dt><dd>{row.sw_l1 || '—'}</dd></div>
+                  </dl>
+                  <details className="qfund-industry-mobile-details">
+                    <summary>查看完整分类</summary>
+                    <dl className="qfund-industry-mobile-fields">
+                      <div><dt>申万二级</dt><dd>{row.sw_l2 || '—'}</dd></div>
+                      <div><dt>申万三级</dt><dd>{row.sw_l3 || '—'}</dd></div>
+                      <div><dt>东财行业</dt><dd>{row.em_industry || '—'}</dd></div>
+                    </dl>
+                  </details>
+                  <Button icon={<EditOutlined />} onClick={() => openEdit(row)}>人工修正</Button>
+                </article>
+              ))}
+            </div>
+          </Spin>
+        </div>
+        {total > pageSize && (
+          <Pagination
+            className="qfund-industry-mobile-pagination"
+            simple
+            current={page}
+            pageSize={pageSize}
+            total={total}
+            showSizeChanger={false}
+            onChange={(p) => setPage(p)}
+          />
+        )}
         <Table<IndustryRow>
+          className="qfund-industry-desktop-table"
           rowKey="stock_code"
           size="small"
           loading={loading}
           columns={columns}
           dataSource={rows}
+          scroll={{ x: 1000 }}
           pagination={{
             current: page,
             pageSize,
@@ -451,6 +509,7 @@ export default function IndustryPage() {
       </Card>
 
       <Modal
+        className="qfund-industry-edit-modal"
         open={!!editing}
         title={`人工修正 · ${editing?.stock_code} ${editing?.stock_name}`}
         onCancel={() => setEditing(null)}

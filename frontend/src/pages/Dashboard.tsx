@@ -1,13 +1,15 @@
-import { useState } from 'react'
-import { Navigate, Route, Routes, useNavigate } from 'react-router-dom'
-import { Button, Layout, Menu } from 'antd'
+import { useEffect, useState } from 'react'
+import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
+import { Button, Drawer, Grid, Layout, Menu } from 'antd'
 import {
   ApartmentOutlined,
   CalendarOutlined,
+  CloseOutlined,
   DeploymentUnitOutlined,
   FundOutlined,
   KeyOutlined,
   LogoutOutlined,
+  MenuOutlined,
   WalletOutlined,
 } from '@ant-design/icons'
 import { FundPage } from './fund'
@@ -16,35 +18,63 @@ import HoldingsPage from './reconcile/HoldingsPage'
 import IndustryPage from './IndustryPage'
 import TokensPage from './TokensPage'
 import TradeCalendar from './TradeCalendar'
+import { AUTH_TOKEN_KEY } from '../config'
 
 const { Header, Sider, Content } = Layout
+const menuItems = [
+  { key: 'fund', icon: <FundOutlined />, label: '基金管理' },
+  { key: 'workbench', icon: <DeploymentUnitOutlined />, label: '组合分析' },
+  { key: 'holdings', icon: <WalletOutlined />, label: '实盘' },
+  { key: 'trade_calendar', icon: <CalendarOutlined />, label: '交易日历' },
+  { key: 'industry', icon: <ApartmentOutlined />, label: '行业映射' },
+  { key: 'tokens', icon: <KeyOutlined />, label: '访问令牌' },
+]
 
 export default function Dashboard() {
   const navigate = useNavigate()
-  const [selected, setSelected] = useState('fund')
+  const location = useLocation()
+  const selected = location.pathname.split('/')[1] || 'fund'
+  const screens = Grid.useBreakpoint()
   const [collapsed, setCollapsed] = useState(false)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+
+  useEffect(() => {
+    if (screens.lg) setMobileMenuOpen(false)
+  }, [screens.lg])
 
   const logout = () => {
-    localStorage.removeItem('token')
+    localStorage.removeItem(AUTH_TOKEN_KEY)
     navigate('/login')
   }
 
   const go = (key: string) => {
-    setSelected(key)
+    setMobileMenuOpen(false)
     navigate(key === 'fund' ? '/' : `/${key}`)
   }
 
   return (
     // 固定视口高度：仅内容区滚动，Header/侧边栏不随滚动移动
-    <Layout style={{ height: '100vh' }}>
-      <Header className="flex items-center justify-between" style={{ paddingInline: 16, flexShrink: 0 }}>
-        <span style={{ color: '#fff', fontSize: 18, fontWeight: 600 }}>iFund</span>
-        <Button icon={<LogoutOutlined />} onClick={logout} ghost size="small">
+    <Layout className="qfund-shell">
+      <a className="qfund-skip-link" href="#qfund-main">跳转到主内容</a>
+      <Header className="qfund-header flex items-center justify-between">
+        <div className="qfund-header-brand">
+          <Button
+            className="qfund-mobile-menu-button"
+            type="text"
+            icon={<MenuOutlined />}
+            aria-label="打开导航菜单"
+            aria-expanded={mobileMenuOpen && !screens.lg}
+            onClick={() => setMobileMenuOpen(true)}
+          />
+          <span className="qfund-brand-name">Qfund</span>
+        </div>
+        <Button icon={<LogoutOutlined />} onClick={logout} ghost className="qfund-logout-button">
           退出
         </Button>
       </Header>
-      <Layout>
+      <Layout className="qfund-main-layout">
         <Sider
+          className="qfund-desktop-sider"
           width={160}
           theme="dark"
           collapsible
@@ -56,17 +86,10 @@ export default function Dashboard() {
             theme="dark"
             selectedKeys={[selected]}
             onClick={(e) => go(e.key)}
-            items={[
-              { key: 'fund', icon: <FundOutlined />, label: '基金管理' },
-              { key: 'workbench', icon: <DeploymentUnitOutlined />, label: '组合分析' },
-              { key: 'holdings', icon: <WalletOutlined />, label: '实盘' },
-              { key: 'trade_calendar', icon: <CalendarOutlined />, label: '交易日历' },
-              { key: 'industry', icon: <ApartmentOutlined />, label: '行业映射' },
-              { key: 'tokens', icon: <KeyOutlined />, label: '访问令牌' },
-            ]}
+            items={menuItems}
           />
         </Sider>
-        <Content style={{ padding: 16, overflow: 'auto' }}>
+        <Content id="qfund-main" tabIndex={-1} className="qfund-content">
           <Routes>
             <Route path="/" element={<FundPage />} />
             <Route path="/workbench" element={<WorkbenchPage />} />
@@ -78,6 +101,26 @@ export default function Dashboard() {
           </Routes>
         </Content>
       </Layout>
+      <Drawer
+        open={mobileMenuOpen && !screens.lg}
+        onClose={() => setMobileMenuOpen(false)}
+        placement="left"
+        width={264}
+        title={<span style={{ color: '#fff' }}>Qfund 导航</span>}
+        closeIcon={<CloseOutlined style={{ color: '#fff' }} />}
+        styles={{
+          header: { background: '#001529', borderBottom: '1px solid rgba(255,255,255,0.12)' },
+          body: { padding: 0, background: '#001529' },
+        }}
+      >
+        <Menu
+          mode="inline"
+          theme="dark"
+          selectedKeys={[selected]}
+          onClick={(e) => go(e.key)}
+          items={menuItems}
+        />
+      </Drawer>
     </Layout>
   )
 }
