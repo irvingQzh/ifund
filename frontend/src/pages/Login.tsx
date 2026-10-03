@@ -40,7 +40,7 @@ export default function Login() {
 
   return (
     <main className="qfund-login-screen">
-      <Card className="qfund-login-card" title="Qfund · 公募基金筛选系统">
+      <Card className="qfund-login-card" title="Qfund">
         {ALLOW_REGISTRATION && (
           <Tabs
             activeKey={mode}
